@@ -4,6 +4,7 @@ Next.js frontend application for the QPeptide Cutter protein digestion tool.
 
 ## Tech Stack
 
+
 - Next.js 14+ (App Router)
 - React 18+
 - TypeScript
