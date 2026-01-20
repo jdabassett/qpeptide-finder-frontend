@@ -1,0 +1,97 @@
+name: Build and Push to ECR
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  FRONTEND_ECR_REPOSITORY: ${{ secrets.FRONTEND_ECR_REPOSITORY }}
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    outputs:
+      ecr_registry: ${{ steps.login-ecr.outputs.registry }}
+      image_tag: ${{ github.sha }}
+      image_uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:${{ github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Verify ECR repository exists
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          FRONTEND_ECR_REPOSITORY: ${{ env.FRONTEND_ECR_REPOSITORY }}
+        run: |
+          echo "Checking if Frontend ECR repository exists: $FRONTEND_ECR_REPOSITORY"
+
+          # Check if repository exists
+          if aws ecr describe-repositories \
+            --repository-names $FRONTEND_ECR_REPOSITORY \
+            --region $AWS_REGION > /dev/null 2>&1; then
+            echo "✅ ECR repository exists: $FRONTEND_ECR_REPOSITORY"
+          else
+            echo "❌ ECR repository does not exist: $FRONTEND_ECR_REPOSITORY"
+            echo "Creating repository..."
+            aws ecr create-repository \
+              --repository-name $FRONTEND_ECR_REPOSITORY \
+              --region $AWS_REGION \
+              --image-scanning-configuration scanOnPush=true \
+              --image-tag-mutability MUTABLE
+            echo "✅ Repository created successfully"
+          fi
+
+      - name: Build, tag, and push image to Amazon ECR
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+      - name: Output image details
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+          FRONTEND_ECR_REPOSITORY: ${{ env.FRONTEND_ECR_REPOSITORY }}
+        run: |
+          echo "### Docker Image Published :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository:** $FRONTEND_ECR_REPOSITORY" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`$ECR_REGISTRY/$FRONTEND_ECR_REPOSITORY:$IMAGE_TAG\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Latest:** \`$ECR_REGISTRY/$FRONTEND_ECR_REPOSITORY:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Pull command:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull $ECR_REGISTRY/$FRONTEND_ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+          # Output for other workflows
+          echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_OUTPUT
+          echo "FRONTEND_ECR_REPOSITORY=$FRONTEND_ECR_REPOSITORY" >> $GITHUB_OUTPUT
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "IMAGE_URI=$ECR_REGISTRY/$FRONTEND_ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
