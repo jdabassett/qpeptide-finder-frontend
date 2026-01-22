@@ -29,13 +29,13 @@ export default function MainLayout({ children, isAuthenticated = false }: MainLa
         onFileClick={handleFileClick}
       />
       
-      <main className="ml-64 pt-16 flex-1">
+      <main className="ml-64 pt-16 flex-1 bg-transparent">
         <div className="p-8">
           {children}
         </div>
       </main>
 
-      <div className="fixed bottom-0 right-0 w-[20vw] max-w-[20vw] h-[20vh] max-h-[20vh] pointer-events-none z-0">
+      <div className="fixed bottom-8 right-8 w-[40vw] h-[40vh] pointer-events-none z-20">
         <Logo className="w-full h-full object-contain" />
       </div>
 

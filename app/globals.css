@@ -23,7 +23,6 @@
 @layer base {
   html {
     font-size: clamp(14px, 1vw + 0.5rem, 16px);
-    background-color: var(--cream);
   }
 
   body {
@@ -37,7 +36,7 @@
     position: fixed;
     inset: 0;
     pointer-events: none;
-    z-index: 0;
+    z-index: 1;
     /* Multiple colored noise layers */
     background-image: 
       /* Light green noise */

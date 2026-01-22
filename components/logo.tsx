@@ -14,52 +14,55 @@ export default function Logo({
   sizes = '(max-width: 640px) 20vw, (max-width: 1024px) 20vw, 20vw'
 }: LogoProps) {
   return (
-    <picture className={`block w-full h-full ${className}`}>
+    <picture className={`block w-full h-full ${className}`} style={{ background: 'transparent', filter: 'brightness(0.85) contrast(1.1)'
+     }}>
       {/* Small screens (mobile) */}
       <source
         media="(max-width: 640px)"
-        srcSet="/images/qpeptide_finder_logo_transparent_small.webp"
+        srcSet="/images/qpeptide_finder_logo_small.webp"
         type="image/webp"
       />
       <source
         media="(max-width: 640px)"
-        srcSet="/images/qpeptide_finder_logo_transparent_small.png"
+        srcSet="/images/qpeptide_finder_logo_small.png"
         type="image/png"
       />
       
       {/* Medium screens (tablet) */}
       <source
         media="(min-width: 641px) and (max-width: 1024px)"
-        srcSet="/images/qpeptide_finder_logo_transparent_medium.webp"
+        srcSet="/images/qpeptide_finder_logo_medium.webp"
         type="image/webp"
       />
       <source
         media="(min-width: 641px) and (max-width: 1024px)"
-        srcSet="/images/qpeptide_finder_logo_transparent_medium.png"
+        srcSet="/images/qpeptide_finder_logo_medium.png"
         type="image/png"
       />
       
       {/* Large screens (desktop) */}
       <source
         media="(min-width: 1025px)"
-        srcSet="/images/qpeptide_finder_logo_transparent_large.webp"
+        srcSet="/images/qpeptide_finder_logo_large.webp"
         type="image/webp"
       />
       <source
         media="(min-width: 1025px)"
-        srcSet="/images/qpeptide_finder_logo_transparent_large.png"
+        srcSet="/images/qpeptide_finder_logo_large.png"
         type="image/png"
       />
       
       {/* Fallback Image */}
       <Image
-        src="/images/qpeptide_finder_logo_transparent_medium.png"
+        src="/images/qpeptide_finder_logo_medium.png"
         alt="QPeptide Finder Logo"
         width={400}
         height={400}
         className="w-full h-full object-contain"
         priority={priority}
         sizes={sizes}
+        unoptimized
+        style={{ background: 'transparent' }}
       />
     </picture>
   );

@@ -1,33 +1,41 @@
 'use client';
 
+import { User } from 'lucide-react';
+import { useState } from 'react';
+
 interface TopBarProps {
   isAuthenticated?: boolean;
+  userName?:string;
 }
 
-export default function TopBar({ isAuthenticated = false }: TopBarProps) {
+export default function TopBar({ isAuthenticated = false, userName }: TopBarProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const displayName = userName || 'No User';
+
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 z-50">
       <div className="flex items-center space-x-2 sm:space-x-4">
         {/* Logo/Brand - responsive text */}
-        <h1 className="text-fluid-lg sm:text-fluid-xl font-semibold text-gray-900">
+        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">
           QPeptide Finder
         </h1>
       </div>
       
       <div className="flex items-center space-x-2 sm:space-x-4">
-        <button className="px-3 sm:px-4 py-2 text-fluid-sm sm:text-fluid-base font-medium text-gray-700 hover:text-gray-900 transition-colors">
+      <button className="px-4 py-1 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-md transition-all text-sm sm:text-base relative border-b-5 border-b-orange-800 hover:border-b-8">
           {isAuthenticated ? 'Logout' : 'Login'}
         </button>
-        
-        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 ${
-          isAuthenticated 
-            ? 'bg-gray-900 border-gray-900' 
-            : 'bg-gray-900 border-gray-900'
-        } flex items-center justify-center`}>
-          {isAuthenticated ? (
-            <span className="text-white text-fluid-xs font-medium">U</span>
-          ) : (
-            <span className="text-gray-400 text-fluid-xs">?</span>
+        <div className="relative"
+         onMouseEnter={() => setShowTooltip(true)}
+         onMouseLeave={() => setShowTooltip(false)}>
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-100 border border-gray-900 flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer">
+            <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+          </div>
+          {showTooltip && (
+            <div className="absolute right-0 top-full mt-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap shadow-lg z-50">
+              {displayName}
+              <div className="absolute -top-1 right-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+            </div>
           )}
         </div>
       </div>
