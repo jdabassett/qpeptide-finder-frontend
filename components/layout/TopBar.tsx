@@ -13,16 +13,35 @@ export default function TopBar({ isAuthenticated = false, userName }: TopBarProp
   const displayName = userName || 'No User';
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 z-50">
+    <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b-3 flex items-center justify-between px-4 sm:px-6 z-50"
+    style={{
+      backgroundColor: 'var(--orange)',
+      borderBottomColor: 'var(--dark-gray)'
+    }}>
       <div className="flex items-center space-x-2 sm:space-x-4">
         {/* Logo/Brand - responsive text */}
-        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">
+        <h1 className="text-2xl sm:text-3xl font-semibold"
+        style={{color: 'var(--black)'}}>
           QPeptide Finder
         </h1>
       </div>
       
       <div className="flex items-center space-x-2 sm:space-x-4">
-      <button className="px-4 py-1 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-md transition-all text-sm sm:text-base relative border-b-5 border-b-orange-800 hover:border-b-8">
+      <button 
+          className="px-4 py-1 font-medium rounded-md transition-all text-sm sm:text-base relative"
+          style={{
+            backgroundColor: 'var(--rainbow-red)',
+            color: 'var(--white)',
+            border: '1px ridge var(--dark-gray)',
+            borderBottom: '4px ridge var(--dark-gray)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--red)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--rainbow-red)';
+          }}
+          >
           {isAuthenticated ? 'Logout' : 'Login'}
         </button>
         <div className="relative"

@@ -19,42 +19,42 @@ export default function Logo({
       {/* Small screens (mobile) */}
       <source
         media="(max-width: 640px)"
-        srcSet="/images/qpeptide_finder_logo_small.webp"
+        srcSet="/images/logo-small.webp"
         type="image/webp"
       />
       <source
         media="(max-width: 640px)"
-        srcSet="/images/qpeptide_finder_logo_small.png"
+        srcSet="/images/logo-mall.png"
         type="image/png"
       />
       
       {/* Medium screens (tablet) */}
       <source
         media="(min-width: 641px) and (max-width: 1024px)"
-        srcSet="/images/qpeptide_finder_logo_medium.webp"
+        srcSet="/images/logo-medium.webp"
         type="image/webp"
       />
       <source
         media="(min-width: 641px) and (max-width: 1024px)"
-        srcSet="/images/qpeptide_finder_logo_medium.png"
+        srcSet="/images/logo-medium.png"
         type="image/png"
       />
       
       {/* Large screens (desktop) */}
       <source
         media="(min-width: 1025px)"
-        srcSet="/images/qpeptide_finder_logo_large.webp"
+        srcSet="/images/logo-large.webp"
         type="image/webp"
       />
       <source
         media="(min-width: 1025px)"
-        srcSet="/images/qpeptide_finder_logo_large.png"
+        srcSet="/images/logo-large.png"
         type="image/png"
       />
       
       {/* Fallback Image */}
       <Image
-        src="/images/qpeptide_finder_logo_medium.png"
+        src="/images/logo-medium.png"
         alt="QPeptide Finder Logo"
         width={400}
         height={400}

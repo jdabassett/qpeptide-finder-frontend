@@ -35,7 +35,7 @@ export default function MainLayout({ children, isAuthenticated = false }: MainLa
         </div>
       </main>
 
-      <div className="fixed bottom-8 right-8 w-[40vw] h-[40vh] pointer-events-none z-20">
+      <div className="fixed bottom-6 right-0 w-[50vw] h-[50vh] pointer-events-none z-20">
         <Logo className="w-full h-full object-contain" />
       </div>
 
