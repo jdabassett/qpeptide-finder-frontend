@@ -1,6 +1,5 @@
 'use client';
 
-import { X } from 'lucide-react';
 import { useEffect } from 'react';
 
 interface UniversalModalProps {
@@ -68,7 +67,10 @@ export default function UniversalModal({
       >
         <div 
           className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0"
-          style={{ borderBottomColor: 'var(--dark-gray)' }}
+          style={{ 
+            backgroundColor: 'var(--dark-orange)',
+            borderBottomColor: 'var(--dark-gray)' 
+          }}
         >
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 rounded-full bg-red-500"></div>
@@ -76,19 +78,11 @@ export default function UniversalModal({
             <div className="w-3 h-3 rounded-full bg-green-500"></div>
             <span 
               className="ml-4 text-sm font-medium"
-              style={{ color: 'var(--black)' }}
+              style={{ color: 'var(--cream)' }}
             >
               {title}
             </span>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-200 rounded transition-colors"
-            aria-label="Close"
-            style={{ color: 'var(--dark-gray)' }}
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         <div className="flex-1 overflow-auto p-6" style={{ backgroundColor: 'var(--cream)' }}>
