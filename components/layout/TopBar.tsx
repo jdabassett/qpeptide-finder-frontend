@@ -2,15 +2,27 @@
 
 import { User } from 'lucide-react';
 import { useState } from 'react';
+import { useUser } from '@auth0/nextjs-auth0/client';
 
 interface TopBarProps {
   isAuthenticated?: boolean;
-  userName?:string;
+  userName?: string;
+  onLoginClick?: () => void;
 }
 
-export default function TopBar({ isAuthenticated = false, userName }: TopBarProps) {
+export default function TopBar({ isAuthenticated = false, userName, onLoginClick}: TopBarProps) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const displayName = userName || 'No User';
+  const { user } = useUser();
+  const displayName = userName || user?.name || user?.email || 'No User';
+
+  const handleAuthClick = () => {
+    if (isAuthenticated) {
+      window.location.href = '/api/auth/logout';
+    } else {
+      onLoginClick?.();
+    }
+  };
+
 
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b-3 flex items-center justify-between px-4 sm:px-6 z-50"
@@ -19,7 +31,6 @@ export default function TopBar({ isAuthenticated = false, userName }: TopBarProp
       borderBottomColor: 'var(--dark-gray)'
     }}>
       <div className="flex items-center space-x-2 sm:space-x-4">
-        {/* Logo/Brand - responsive text */}
         <h1 className="text-2xl sm:text-3xl font-semibold"
         style={{color: 'var(--black)'}}>
           QPeptide Finder
@@ -28,6 +39,7 @@ export default function TopBar({ isAuthenticated = false, userName }: TopBarProp
       
       <div className="flex items-center space-x-2 sm:space-x-4">
       <button 
+          onClick={handleAuthClick}
           className="px-4 py-1 font-medium rounded-md transition-all text-sm sm:text-base relative"
           style={{
             backgroundColor: 'var(--rainbow-red)',

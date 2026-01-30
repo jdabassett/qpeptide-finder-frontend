@@ -37,13 +37,16 @@ export default function Sidebar({ isAuthenticated = false, onFileClick }: Sideba
               className="w-full flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg transition-all relative z-20 active:scale-95"
             >
               {/* Responsive icon container */}
-              <div className="w-12 h-12 sm:w-16 sm:h-16 mb-1 sm:mb-2 flex items-center justify-center rounded-md border-1 border-gray-900 bg-white shadow-sm transition-colors">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 mb-1 sm:mb-2 flex items-center justify-center rounded-md border-1 border-gray-900 bg-white shadow-sm transition-colors"
+                style={{
+                                backgroundColor: 'var(--cream)',
+                                borderColor: 'var(--dark-gray)'
+                              }}
+                              >
                 <Icon 
                   className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer" 
                   style={{
-                    backgroundColor: 'var(--cream)',
-                    color: file.color,
-                    borderColor: 'var(--dark-gray)'
+                    color: file.color
                   }}
                 />
               </div>
