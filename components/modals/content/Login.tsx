@@ -6,65 +6,26 @@ import { LogOut, User, Mail } from 'lucide-react';
 import LoginButton from './LoginButton';
 import { loginOptions } from './loginOptions';
 
+interface LoginContentProps {
+  onLoginSuccess?: () => void;
+}
 
-export default function LoginContent() {
+export default function LoginContent({ onLoginSuccess }: LoginContentProps) {
   const { user, isLoading, error } = useUser();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Listen for auth completion from popup
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      // Verify origin for security
-      if (event.origin !== window.location.origin) return;
-      
-      if (event.data.type === 'AUTH_SUCCESS') {
-        // Reload to get updated user state
-        window.location.reload();
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
+    if (user && onLoginSuccess) {
+      const timer = setTimeout(() => {
+        onLoginSuccess();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [user, onLoginSuccess]);
 
   const handleSocialLogin = async (connection: string) => {
-    const domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN || 'dev-sr7n7fae2p4m7hpx.us.auth0.com';
-    const clientId = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID || 'B6BmX4cDjVz5RBi51JzmwQIyw9xIDoI4';
-    const redirectUri = `${window.location.origin}/api/auth/callback`;
-    const state = Math.random().toString(36).substring(7);
-    
-    // Store state for verification
-    sessionStorage.setItem('auth0_state', state);
-    
-    const authUrl = `https://${domain}/authorize?` + new URLSearchParams({
-      client_id: clientId,
-      connection: connection,
-      redirect_uri: redirectUri,
-      response_type: 'code',
-      scope: 'openid profile email',
-      state: state,
-    }).toString();
-
-    // Open popup window
-    const width = 500;
-    const height = 600;
-    const left = (window.screen.width - width) / 2;
-    const top = (window.screen.height - height) / 2;
-    
-    const popup = window.open(
-      authUrl,
-      'auth0',
-      `width=${width},height=${height},left=${left},top=${top},toolbar=no,location=no,status=no,menubar=no`
-    );
-
-    // Poll for popup closure (indicates auth completion)
-    const pollTimer = setInterval(() => {
-      if (popup?.closed) {
-        clearInterval(pollTimer);
-        // Check if we got a callback
-        window.location.reload();
-      }
-    }, 500);
+    const loginUrl = `/api/auth/login?connection=${connection}`;
+    window.location.href = loginUrl;
   };
 
   const handleLogout = async () => {
@@ -159,7 +120,7 @@ export default function LoginContent() {
       </div>
 
       <div className="space-y-3">
-        {loginOptions.map((option, index) => {
+        {loginOptions.map((option) => {
           return (
             <LoginButton
               key={option.connection}
