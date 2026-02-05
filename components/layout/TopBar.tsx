@@ -2,7 +2,7 @@
 
 import { User } from 'lucide-react';
 import { useState } from 'react';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useUserContext } from '@/components/providers/AuthProvider';
 
 interface TopBarProps {
   onLoginClick?: () => void;
@@ -10,16 +10,11 @@ interface TopBarProps {
 
 export default function TopBar({onLoginClick}: TopBarProps) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const { user } = useUser();
-  const isAuthenticated = !!user;
+  const { user, isAuthenticated } = useUserContext();
   const displayName = user?.name || user?.email || 'No User';
 
   const handleAuthClick = () => {
-    if (isAuthenticated) {
-      window.location.href = '/api/auth/logout';
-    } else {
-      onLoginClick?.();
-    }
+    onLoginClick?.();
   };
 
 
@@ -58,8 +53,16 @@ export default function TopBar({onLoginClick}: TopBarProps) {
         <div className="relative"
          onMouseEnter={() => setShowTooltip(true)}
          onMouseLeave={() => setShowTooltip(false)}>
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-100 border border-gray-900 flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer">
-            <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-100 border border-gray-900 flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer overflow-hidden">
+            {user?.picture ? (
+              <img 
+                src={user.picture} 
+                alt={displayName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+            )}
           </div>
           {showTooltip && (
             <div className="absolute right-0 top-full mt-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap shadow-lg z-50">

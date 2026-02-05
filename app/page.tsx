@@ -1,22 +1,21 @@
 'use client';
 
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useUserContext } from '@/components/providers/AuthProvider';
 import MainLayout from '@/components/layout/MainLayout';
 
 export default function Home() {
-  const { user, isLoading } = useUser();
-  const isAuthenticated = !!user;
+  const { isLoading } = useUserContext();
 
   if (isLoading) {
     return (
-      <MainLayout isAuthenticated={false}>
+      <MainLayout>
         <div>Loading...</div>
       </MainLayout>
     );
   }
 
   return (
-    <MainLayout isAuthenticated={isAuthenticated}>
+    <MainLayout>
       <div/>
     </MainLayout>
   );

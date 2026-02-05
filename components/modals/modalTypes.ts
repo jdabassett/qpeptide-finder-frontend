@@ -1,5 +1,6 @@
 export type ModalType = 
   | 'login'
+  | 'logout'
   | 'new-digest'
   | 'digests'
   | 'analysis'

@@ -6,21 +6,25 @@ import Sidebar from './Sidebar';
 import UniversalModal from '../modals/UniversalModal';
 import Logo from '../logo';
 import LoginContent from '../modals/content/Login';
+import LogoutContent from '../modals/content/Logout';
+import { useUserContext } from '@/components/providers/AuthProvider';
 import type { ModalType } from '../modals/modalTypes';
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  isAuthenticated?: boolean;
 }
 
-const modalContentMap: Record<string, React.ComponentType> = {
+const modalContentMap: Record<string, React.ComponentType<any>> = {
   'login': LoginContent,
+  'logout': LogoutContent,
 };
 const modalTitleMap: Record<string, string> = {
   'login': 'Login',
+  'logout': 'Logout',
 };
 
-export default function MainLayout({ children, isAuthenticated = false }: MainLayoutProps) {
+export default function MainLayout({ children }: MainLayoutProps) {
+  const { isAuthenticated } = useUserContext();
   const [activeModal, setActiveModal] = useState<ModalType>(null);
 
   const handleFileClick = (fileName: string) => {
@@ -35,7 +39,7 @@ export default function MainLayout({ children, isAuthenticated = false }: MainLa
   };
 
   const handleLoginClick = () => {
-    setActiveModal('login');
+    setActiveModal(isAuthenticated ? 'logout' : 'login');
   };
 
   const closeModal = () => {
@@ -43,16 +47,15 @@ export default function MainLayout({ children, isAuthenticated = false }: MainLa
   };
 
   const ModalContent = activeModal ? modalContentMap[activeModal] : null;
-  const modalTitle = activeModal ? modalTitleMap[activeModal] : '';
+  const modalTitle = activeModal ? modalTitleMap[activeModal] || '' : '';
+
 
   return (
     <div className="flex min-h-screen">
       <TopBar 
-        isAuthenticated={isAuthenticated} 
         onLoginClick={handleLoginClick}
       />
       <Sidebar 
-        isAuthenticated={isAuthenticated} 
         onFileClick={handleFileClick}
       />
       
@@ -72,7 +75,11 @@ export default function MainLayout({ children, isAuthenticated = false }: MainLa
           onClose={closeModal}
           title={modalTitle}
         >
-          <ModalContent />
+          {activeModal === 'logout' ? (
+            <ModalContent onClose={closeModal} />
+          ) : (
+            <ModalContent />
+          )}
         </UniversalModal>
       )}
     </div>

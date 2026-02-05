@@ -53,14 +53,10 @@
 }
 
 
-/* @theme inline {
-  --color-background: #E74C3C;
+@theme inline {
   --font-mono: var(--font-courier);
-} */
-
-@theme {
-  --color-red: #E74C3C;
 }
+
 
 @layer base {
   html {

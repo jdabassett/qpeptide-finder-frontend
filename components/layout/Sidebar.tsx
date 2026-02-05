@@ -2,13 +2,15 @@
 
 import { useState } from 'react';
 import { FileText, Lock, Search, Slice, ChartColumnIncreasing, Microscope} from 'lucide-react';
+import { useUserContext } from '@/components/providers/AuthProvider';
 
 interface SidebarProps {
-  isAuthenticated?: boolean;
   onFileClick: (fileName: string) => void;
 }
 
-export default function Sidebar({ isAuthenticated = false, onFileClick }: SidebarProps) {
+export default function Sidebar({onFileClick }: SidebarProps) {
+  const { isAuthenticated } = useUserContext();
+  
   const publicFiles = [
     { name: 'Directions', icon: FileText, color: 'var(--blue)' },
     { name: 'Science', icon: Microscope, color: 'var(--light-red)' },
