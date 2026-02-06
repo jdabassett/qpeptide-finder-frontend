@@ -15,26 +15,17 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-// TODO: remove after local testing
-function getMockUser() {
-  if (process.env.NODE_ENV !== 'development') return null;
-  
-  if (process.env.NEXT_PUBLIC_MOCK_USER === 'true') {
-    return {
-      name: process.env.NEXT_PUBLIC_MOCK_USER_NAME || 'Test User',
-      email: process.env.NEXT_PUBLIC_MOCK_USER_EMAIL || 'test@example.com',
-      picture: process.env.NEXT_PUBLIC_MOCK_USER_PICTURE || null,
-    };
-  }
-  return null;
-}
+// DEV ONLY: Uncomment to mock a logged-in user. Comment out to use real Auth0.
+// const MOCK_USER = { name: 'John Doe', email: 'john@example.com', picture: 'https://cdn.auth0.com/avatars/jd.png' };
+
 
 function AuthProviderInner({ children }: { children: ReactNode }) {
   const { user: auth0User, isLoading: auth0Loading } = useUser();
   
-  const mockUser = getMockUser();
-  const user = mockUser || auth0User;
-  const isLoading = auth0Loading && !mockUser;
+  // const user = typeof MOCK_USER !== 'undefined' ? MOCK_USER : auth0User;
+  const user = auth0User;
+  // const isLoading = typeof MOCK_USER !== 'undefined' ? false : auth0Loading;
+  const isLoading = auth0Loading
   const isAuthenticated = !!user;
 
   const value: UserContextType = {

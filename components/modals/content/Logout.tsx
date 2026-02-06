@@ -14,7 +14,7 @@ export default function LogoutContent({ onClose }: LogoutContentProps) {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    window.location.href = '/api/auth/logout';
+    window.location.href = `/auth/logout?returnTo=${encodeURIComponent(window.location.origin)}`;
   };
 
   const handleCancel = () => {

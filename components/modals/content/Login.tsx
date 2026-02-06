@@ -24,13 +24,13 @@ export default function LoginContent({ onLoginSuccess }: LoginContentProps) {
   }, [user, onLoginSuccess]);
 
   const handleSocialLogin = async (connection: string) => {
-    const loginUrl = `/api/auth/login?connection=${connection}`;
+    const loginUrl = `/auth/login?connection=${connection}`;
     window.location.href = loginUrl;
   };
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    window.location.href = '/api/auth/logout';
+    window.location.href = '/auth/logout';
   };
 
   if (isLoading) {
@@ -133,7 +133,7 @@ export default function LoginContent({ onLoginSuccess }: LoginContentProps) {
         })}
       </div>
 
-      {error && (
+      {error && error.message !== 'Unauthorized' &&  (
         <div className="p-3 rounded bg-red-100 text-red-700 text-sm">
           {error.message || 'An error occurred during authentication'}
         </div>
