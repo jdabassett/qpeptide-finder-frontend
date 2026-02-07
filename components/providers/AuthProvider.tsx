@@ -15,16 +15,11 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-// DEV ONLY: Uncomment to mock a logged-in user. Comment out to use real Auth0.
-// const MOCK_USER = { name: 'John Doe', email: 'john@example.com', picture: 'https://cdn.auth0.com/avatars/jd.png' };
-
 
 function AuthProviderInner({ children }: { children: ReactNode }) {
   const { user: auth0User, isLoading: auth0Loading } = useUser();
   
-  // const user = typeof MOCK_USER !== 'undefined' ? MOCK_USER : auth0User;
   const user = auth0User;
-  // const isLoading = typeof MOCK_USER !== 'undefined' ? false : auth0Loading;
   const isLoading = auth0Loading
   const isAuthenticated = !!user;
 
