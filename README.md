@@ -9,6 +9,7 @@ Next.js frontend application for the QPeptide Cutter protein digestion tool.
 - TypeScript
 - Tailwind CSS
 
+
 ## Development
 
 ### Prerequisites
