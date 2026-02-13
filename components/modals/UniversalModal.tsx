@@ -163,6 +163,16 @@ export default function UniversalModal({
                 title="Fullscreen"
               />
             </div>
+
+            {title && (
+              <span 
+                className="text-sm font-bold truncate flex-1 text-center px-4 select-none"
+                style={{ color: 'var(--dark)' }}
+              >
+                {title}
+              </span>
+            )}
+
             <button
               onClick={onClose}
               className="p-1 hover:opacity-80 transition-opacity"
