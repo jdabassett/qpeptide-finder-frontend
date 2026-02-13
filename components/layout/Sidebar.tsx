@@ -39,12 +39,15 @@ export default function Sidebar({onFileClick }: SidebarProps) {
               className="w-full flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg transition-all relative z-20 active:scale-95"
             >
               {/* Responsive icon container */}
-              <div className="w-12 h-12 sm:w-16 sm:h-16 mb-1 sm:mb-2 flex items-center justify-center rounded-md border-1 border-gray-900 bg-white shadow-sm transition-colors"
+              <div className="w-12 h-12 sm:w-16 sm:h-16 mb-1 sm:mb-2 flex items-center justify-center bg-white shadow-sm transition-colors"
                 style={{
-                                backgroundColor: 'var(--cream)',
-                                borderColor: 'var(--dark-gray)'
-                              }}
-                              >
+                  backgroundColor: 'var(--cream)',
+                  borderTop: '2px solid var(--white)',
+                  borderLeft: '2px solid var(--white)',
+                  borderRight: '2px solid var(--dark-gray)',
+                  borderBottom: '2px solid var(--dark-gray)',
+                }}
+              >
                 <Icon 
                   className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer" 
                   style={{
@@ -54,7 +57,7 @@ export default function Sidebar({onFileClick }: SidebarProps) {
               </div>
               
               {/* Responsive text size with cream background */}
-              <span className="text-fluid-xs sm:text-fluid-sm font-medium text-center max-w-full truncate px-2 py-1 rounded border sidebar-label cursor-pointer"
+              <span className="text-fluid-xs sm:text-fluid-sm font-medium text-center max-w-full truncate px-2 py-1 rounded-none border sidebar-label cursor-pointer"
                 style={{
                   backgroundColor: 'var(--cream)',
                   color: 'var(--black)',

@@ -19,10 +19,18 @@ export default function TopBar({onLoginClick}: TopBarProps) {
 
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 border-b-3 flex items-center justify-between px-4 sm:px-6 z-50"
+    <header className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 sm:px-6 z-50"
     style={{
       backgroundColor: 'var(--orange)',
-      borderBottomColor: 'var(--dark-gray)'
+      borderTop: '2px solid #F8A876',
+      borderLeft: '2px solid #F8A876',
+      borderRight: '2px solid var(--dark-orange)',
+      borderBottom: '3px solid var(--black)',
+      boxShadow: `
+        inset 0 1px 0 rgba(255,255,255,0.25),
+        0 2px 0 #7D8388,
+        0 4px 6px rgba(0, 0, 0, 0.12)
+      `,
     }}>
       <div className="flex items-center space-x-2 sm:space-x-4">
         <h1 className="text-2xl sm:text-3xl font-semibold bg-red"
@@ -34,7 +42,7 @@ export default function TopBar({onLoginClick}: TopBarProps) {
       <div className="flex items-center space-x-2 sm:space-x-4">
       <button 
           onClick={handleAuthClick}
-          className="px-4 py-1 font-medium rounded-md transition-all text-sm sm:text-base relative"
+          className="px-4 py-1 font-medium rounded-none transition-all text-sm sm:text-base relative"
           style={{
             backgroundColor: 'var(--rainbow-red)',
             color: 'var(--white)',
@@ -65,7 +73,7 @@ export default function TopBar({onLoginClick}: TopBarProps) {
             )}
           </div>
           {showTooltip && (
-            <div className="absolute right-0 top-full mt-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap shadow-lg z-50">
+            <div className="absolute right-0 top-full mt-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-none whitespace-nowrap shadow-lg z-50">
               {displayName}
               <div className="absolute -top-1 right-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
             </div>

@@ -9,6 +9,7 @@ import LoginContent from '../modals/content/Login';
 import LogoutContent from '../modals/content/Logout';
 import { useUserContext } from '@/components/providers/AuthProvider';
 import type { ModalType } from '../modals/modalTypes';
+import ScienceContent from '../modals/content/Science';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -17,10 +18,12 @@ interface MainLayoutProps {
 const modalContentMap: Record<string, React.ComponentType<any>> = {
   'login': LoginContent,
   'logout': LogoutContent,
+  'science': ScienceContent,
 };
 const modalTitleMap: Record<string, string> = {
   'login': 'Login',
   'logout': 'Logout',
+  'science': 'Science behind QPeptides',
 };
 
 export default function MainLayout({ children }: MainLayoutProps) {
