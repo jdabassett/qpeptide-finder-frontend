@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Courier_Prime } from "next/font/google";
 import AuthProvider  from '@/components/providers/AuthProvider';
 import DeviceProvider from '@/components/providers/DeviceProvider';
+import ErrorProvider from '@/components/providers/ErrorProvider';
 import "./globals.css";
 
 const courier = Courier_Prime({
@@ -25,11 +26,13 @@ export default function RootLayout({
       <body
         className={`${courier.variable} font-mono antialiased`}
       >
-        <AuthProvider>
-          <DeviceProvider>
-            {children}
-          </DeviceProvider>
-        </AuthProvider>
+        <ErrorProvider>
+          <AuthProvider>
+            <DeviceProvider>
+                {children}
+            </DeviceProvider>
+          </AuthProvider>
+        </ErrorProvider>
       </body>
     </html>
   );
