@@ -10,6 +10,7 @@ import LogoutContent from '../modals/content/Logout';
 import { useUserContext } from '@/components/providers/AuthProvider';
 import type { ModalType } from '../modals/modalTypes';
 import ScienceContent from '../modals/content/Science';
+import ErrorModal from '../modals/ErrorModal';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -85,6 +86,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
           )}
         </UniversalModal>
       )}
+
+      <ErrorModal />
     </div>
   );
 }
