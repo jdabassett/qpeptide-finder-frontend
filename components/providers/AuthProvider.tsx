@@ -4,7 +4,7 @@ import { Auth0Provider, useUser } from '@auth0/nextjs-auth0/client';
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useError } from '@/components/providers/ErrorProvider';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 interface BackendUser {
   id: string;
