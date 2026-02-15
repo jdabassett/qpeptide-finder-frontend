@@ -11,6 +11,7 @@ import { useUserContext } from '@/components/providers/AuthProvider';
 import type { ModalType } from '../modals/modalTypes';
 import ScienceContent from '../modals/content/Science';
 import ErrorModal from '../modals/ErrorModal';
+import NewDigestContent from '../modals/content/NewDigest';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -20,11 +21,13 @@ const modalContentMap: Record<string, React.ComponentType<any>> = {
   'login': LoginContent,
   'logout': LogoutContent,
   'science': ScienceContent,
+  'new-digest': NewDigestContent,
 };
 const modalTitleMap: Record<string, string> = {
   'login': 'Login',
   'logout': 'Logout',
   'science': 'Science behind QPeptides',
+  'new-digest': 'New Digest', 
 };
 
 export default function MainLayout({ children }: MainLayoutProps) {
