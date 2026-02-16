@@ -1,7 +1,7 @@
 'use client';
 
 import { Auth0Provider, useUser } from '@auth0/nextjs-auth0/client';
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { useError } from '@/components/providers/ErrorProvider';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
@@ -23,6 +23,7 @@ interface UserContextType {
   } | null | undefined;
   isLoading: boolean;
   isAuthenticated: boolean;
+  deleteAccountAndLogout: () => Promise<boolean>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -33,10 +34,11 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
   const [backendUser, setBackendUser] = useState<BackendUser | null>(null);
   const [backendLoading, setBackendLoading] = useState(false);
   const [backendSynced, setBackendSynced] = useState(false);
+  const loggingOutRef = useRef(false);
 
   // When Auth0 gives us a user, sync with the backend
   useEffect(() => {
-    if (auth0Loading || !auth0User || backendSynced) return;
+    if (auth0Loading || !auth0User || backendSynced || loggingOutRef.current) return;
 
     const syncUser = async () => {
       setBackendLoading(true);
@@ -89,6 +91,45 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
   const isLoading = auth0Loading || backendLoading;
   const isAuthenticated = !!auth0User && !!backendUser;
 
+  const deleteAccountAndLogout = useCallback(async (): Promise<boolean> => {
+    if (!backendUser) return false;
+
+    // Prevent the sync effect from re-creating the user
+    // between state clear and Auth0 logout redirect
+    loggingOutRef.current = true;
+
+    try {
+      const response = await fetch(`${API_URL}/v1/users/id/${backendUser.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        let message = `Failed to delete account (${response.status})`;
+        if (body?.detail) {
+          if (typeof body.detail === 'string') {
+            message = body.detail;
+          } else if (Array.isArray(body.detail)) {
+            message = body.detail.map((e: any) => e.msg).join('; ');
+          }
+        }
+        setError(response.status, message);
+        loggingOutRef.current = false;
+        return false;
+      }
+
+      // Success — clear local state and log out of Auth0
+      setBackendUser(null);
+      setBackendSynced(false);
+      window.location.href = `/auth/logout?returnTo=${encodeURIComponent(window.location.origin)}`;
+      return true;
+    } catch {
+      setError(0, 'Unable to reach the server. Please check your connection.');
+      loggingOutRef.current = false;
+      return false;
+    }
+  }, [backendUser, setError]);
+
   const value: UserContextType = {
     user: isAuthenticated ? {
       id: backendUser.id,
@@ -98,6 +139,7 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
     } : null,
     isLoading,
     isAuthenticated,
+    deleteAccountAndLogout,
   };
 
   return (

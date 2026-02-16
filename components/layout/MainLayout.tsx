@@ -12,6 +12,9 @@ import type { ModalType } from '../modals/modalTypes';
 import ScienceContent from '../modals/content/Science';
 import ErrorModal from '../modals/ErrorModal';
 import NewDigestContent from '../modals/content/NewDigest';
+import DeleteModal from '../modals/DeleteModal';
+
+
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -27,7 +30,7 @@ const modalTitleMap: Record<string, string> = {
   'login': 'Login',
   'logout': 'Logout',
   'science': 'Science behind QPeptides',
-  'new-digest': 'New Digest', 
+  'new-digest': 'New Digest',
 };
 
 export default function MainLayout({ children }: MainLayoutProps) {
@@ -56,16 +59,15 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const ModalContent = activeModal ? modalContentMap[activeModal] : null;
   const modalTitle = activeModal ? modalTitleMap[activeModal] || '' : '';
 
-
   return (
     <div className="flex min-h-screen">
-      <TopBar 
+      <TopBar
         onLoginClick={handleLoginClick}
       />
-      <Sidebar 
+      <Sidebar
         onFileClick={handleFileClick}
       />
-      
+
       <main className="ml-64 pt-16 flex-1 bg-transparent">
         <div className="p-8">
           {children}
@@ -89,7 +91,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           )}
         </UniversalModal>
       )}
-
+      <DeleteModal />
       <ErrorModal />
     </div>
   );
