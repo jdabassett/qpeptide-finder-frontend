@@ -58,8 +58,8 @@ export default function ErrorModal() {
             }}
           >
             <span
-              className="text-sm font-bold select-none"
-              style={{ color: 'var(--white)' }}
+              className="text-sm font-bold truncate flex-1 text-center px-4 select-none"
+              style={{ color: 'var(--dark)' }}
             >
               Error
             </span>
