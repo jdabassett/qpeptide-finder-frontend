@@ -59,6 +59,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const ModalContent = activeModal ? modalContentMap[activeModal] : null;
   const modalTitle = activeModal ? modalTitleMap[activeModal] || '' : '';
 
+
   return (
     <div className="flex min-h-screen">
       <TopBar
