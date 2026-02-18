@@ -1,11 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { FlaskConical, Type, AlignLeft, AlertCircle, Loader2, Check } from 'lucide-react';
+import { FlaskConical, Type, AlignLeft, AlertCircle, Loader2, BarChart3 } from 'lucide-react';
 import { useError } from '@/components/providers/ErrorProvider';
-import { useUserContext } from '@/components/providers/AuthProvider';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+import { useDigest } from '@/components/providers/DigestProvider';
 
 /* ── Constants ── */
 const STORAGE_KEY = 'qpeptide-new-digest-draft';
@@ -31,7 +29,7 @@ function validateName(name: string): ValidationResult {
 }
 
 function validateSequence(sequence: string): ValidationResult {
-  const cleaned = sequence.replace(/\s/g, '').toUpperCase();
+  const cleaned = sequence.replace(/[\s\d]/g, '').toUpperCase();
   if (cleaned.length === 0) {
     return { valid: false, error: 'Sequence is required' };
   }
@@ -53,78 +51,85 @@ function validateSequence(sequence: string): ValidationResult {
 
 /* ── localStorage helpers ── */
 
-function loadDraft(): { proteinName: string; sequence: string } {
-  if (typeof window === 'undefined') return { proteinName: '', sequence: '' };
+function loadDraft(): { proteinName: string; sequence: string; newDraft: boolean} {
+  if (typeof window === 'undefined') return { proteinName: '', sequence: '', newDraft: true };
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return { proteinName: '', sequence: '' };
+    if (!stored) return { proteinName: '', sequence: '', newDraft: true };
     const parsed = JSON.parse(stored);
     return {
       proteinName: typeof parsed.proteinName === 'string' ? parsed.proteinName : '',
       sequence: typeof parsed.sequence === 'string' ? parsed.sequence : '',
+      newDraft: parsed.newDraft !== false,
     };
   } catch {
-    return { proteinName: '', sequence: '' };
+    return { proteinName: '', sequence: '', newDraft: true };
   }
 }
 
-function saveDraft(proteinName: string, sequence: string) {
+function saveDraft(proteinName: string, sequence: string, newDraft: boolean) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ proteinName, sequence }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ proteinName, sequence, newDraft }));
   } catch { /* localStorage full or unavailable */ }
 }
 
 /* ── Component ── */
+interface NewDigestContentProps {
+  onOpenAnalysis?: () => void;
+}
 
-export default function NewDigestContent() {
+export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentProps) {
   const { setError } = useError();
-  const { user } = useUserContext();
+  const { status: digestStatus, submitDigest } = useDigest();
 
   const [proteinName, setProteinName] = useState('');
   const [sequence, setSequence] = useState('');
   const [nameError, setNameError] = useState<string | null>(null);
   const [sequenceError, setSequenceError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [newDraft, setNewDraft] = useState(true);
+  
 
   // Hydrate from localStorage on mount
   useEffect(() => {
     const draft = loadDraft();
     setProteinName(draft.proteinName);
     setSequence(draft.sequence);
+    setNewDraft(draft.newDraft);
     setHydrated(true);
   }, []);
   
   // Save to localStorage on change — only AFTER hydration
   useEffect(() => {
     if (!hydrated) return;
-    saveDraft(proteinName, sequence);
+    saveDraft(proteinName, sequence, newDraft);
   }, [proteinName, sequence, hydrated]);
 
   // Clear inline errors as user types
   const handleNameChange = useCallback((value: string) => {
     setProteinName(value);
     if (nameError) setNameError(null);
-    if (submitStatus !== 'idle') setSubmitStatus('idle');
-  }, [nameError, submitStatus]);
+    setNewDraft(true);
+  }, [nameError]);
 
   const handleSequenceChange = useCallback((value: string) => {
     setSequence(value);
     if (sequenceError) setSequenceError(null);
-    if (submitStatus !== 'idle') setSubmitStatus('idle');
-  }, [sequenceError, submitStatus]);
+    setNewDraft(true);
+  }, [sequenceError]);
 
   const handleClear = useCallback(() => {
     setProteinName('');
     setSequence('');
     setNameError(null);
     setSequenceError(null);
-    setSubmitStatus('idle');
+    setNewDraft(true);
     try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (submitStatus === 'loading') return;
+    if (digestStatus === 'loading' || digestStatus === 'polling' || digestStatus === 'fetching') return;
+
     const nameResult = validateName(proteinName);
     const seqResult = validateSequence(sequence);
 
@@ -136,50 +141,18 @@ export default function NewDigestContent() {
       setError(400, messages);
       return;
     }
-
-
-    if (!user?.id) {
-      setError(401, 'You must be logged in to submit a digest.');
-      return;
-    }
-
-    setSubmitStatus('loading');
-
-    try {
-      const response = await fetch(`${API_URL}/v1/digest/job`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
-          protease: 'trypsin',
-          protein_name: proteinName.trim(),
-          sequence: sequence.replace(/\s/g, '').toUpperCase(),
-        }),
-      });
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => null);
-        let message = `Failed to submit digest (${response.status})`;
-        if (body?.detail) {
-          if (typeof body.detail === 'string') {
-            message = body.detail;
-          } else if (Array.isArray(body.detail)) {
-            message = body.detail.map((e: any) => e.msg).join('; ');
-          }
-        }
-        setError(response.status, message);
-        setSubmitStatus('idle');
-        return;
-      }
-
-      setSubmitStatus('success');
-    } catch {
-      setError(0, 'Unable to reach the server. Please check your connection.');
-      setSubmitStatus('idle');
-    }
-  }, [proteinName, sequence, user, setError, submitStatus]);
+    setNewDraft(false);
+    await submitDigest({
+      proteinName: proteinName.trim(),
+      sequence: sequence.replace(/[\s\d]/g, '').toUpperCase(),
+    });
+  }, [proteinName, sequence, digestStatus, setError, submitDigest]);
 
   const cleanedLength = sequence.replace(/\s/g, '').length;
+
+  const isInputDisabled = digestStatus === 'loading' || digestStatus === 'polling' || digestStatus === 'fetching';
+
+  const showAnalyze = !newDraft && digestStatus === 'completed';
 
   return (
     <div className="space-y-6 p-2">
@@ -205,7 +178,7 @@ export default function NewDigestContent() {
           type="text"
           value={proteinName}
           onChange={e => handleNameChange(e.target.value)}
-          disabled={submitStatus === 'loading'}
+          disabled={isInputDisabled}
           placeholder="e.g. Human Serum Albumin"
           maxLength={MAX_NAME_LENGTH}
           className="w-full px-3 py-2 text-sm font-mono outline-none"
@@ -234,8 +207,8 @@ export default function NewDigestContent() {
         <textarea
           value={sequence}
           onChange={e => handleSequenceChange(e.target.value)}
-          disabled={submitStatus === 'loading'}
-          placeholder="MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEKAVQVKVKALPDAQFEVVHSLAKWKRQTLGQHDFSAGEGLYTHMKALRPDEDRLSPLHSVYVDQWDWYVYSQIAEEYEVHSSFLK"
+          disabled={isInputDisabled}
+          placeholder={` 1 malwmrllpl lallalwgpd paaafvnqhl cgshlvealy lvcgergffy tpktrreaed\n61 lqvealylvc gergffytpk trreaedlqa salslsssts twpegldkdi atevcrkala`}
           rows={8}
           className="w-full px-3 py-2 text-sm font-mono outline-none resize-y"
           style={{
@@ -255,7 +228,7 @@ export default function NewDigestContent() {
           <span>{cleanedLength}/{MAX_SEQUENCE_LENGTH} residues</span>
         </div>
         <p className="text-xs" style={{ color: 'var(--gray)' }}>
-          Standard 20 amino acids only (A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y). Whitespace is ignored.
+          Standard 20 amino acids only (A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y). Whitespace and line numbers are ignored.
         </p>
         <p className="text-xs" style={{ color: 'var(--gray)' }}>
         Future versions of QPeptide Finder will support additional proteases beyond Trypsin 
@@ -265,9 +238,8 @@ export default function NewDigestContent() {
 
       {/* Buttons */}
       <div className="border-t pt-4 flex gap-3" style={{ borderColor: 'var(--dark-gray)' }}>
-        <button
+        { !isInputDisabled && <button
           onClick={handleClear}
-          disabled={submitStatus === 'loading'}
           className="px-6 py-3 font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
           style={{
             backgroundColor: 'var(--cream)',
@@ -280,36 +252,49 @@ export default function NewDigestContent() {
         >
           Clear
         </button>
+        }
         <button
-          onClick={handleSubmit}
-          disabled={submitStatus === 'loading' || submitStatus === 'success'}
+          onClick={showAnalyze ? () => onOpenAnalysis?.() : handleSubmit}
+          disabled={isInputDisabled}
           className="flex-1 px-6 py-3 font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
           style={{
-            backgroundColor: submitStatus === 'success' ? 'var(--rainbow-green)' : 'var(--dark-blue)',
+            backgroundColor:
+              showAnalyze ? 'var(--rainbow-green)'
+              : digestStatus === 'polling' ? 'var(--dark-orange)'
+              : 'var(--dark-blue)',
             color: 'var(--white)',
             border: '1px ridge var(--dark-gray)',
             borderBottom: '4px ridge var(--dark-gray)',
-            opacity: submitStatus === 'loading' ? 0.7 : 1,
+            opacity: (digestStatus === 'loading' || digestStatus === 'polling') ? 0.7 : 1,
           }}
           onMouseEnter={e => {
-            if (submitStatus === 'idle') e.currentTarget.style.backgroundColor = 'var(--blue)';
+            if (digestStatus === 'idle') e.currentTarget.style.backgroundColor = 'var(--blue)';
+            if (showAnalyze) e.currentTarget.style.backgroundColor = 'var(--green)';
           }}
           onMouseLeave={e => {
-            if (submitStatus === 'idle') e.currentTarget.style.backgroundColor = 'var(--dark-blue)';
+            if (digestStatus === 'idle') e.currentTarget.style.backgroundColor = 'var(--dark-blue)';
+            if (showAnalyze) e.currentTarget.style.backgroundColor = 'var(--rainbow-green)';
           }}
         >
-          {submitStatus === 'loading' && (
+          {(digestStatus === 'loading') && (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
+              Submitting…
             </>
           )}
-          {submitStatus === 'success' && (
+          {(digestStatus === 'polling' || digestStatus === 'fetching') && (
             <>
-              <Check className="w-5 h-5" />
-              Digest Submitted
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Digesting…
             </>
           )}
-          {submitStatus === 'idle' && (
+          {showAnalyze && (
+            <>
+              <BarChart3 className="w-5 h-5" />
+              Analyze Digest
+            </>
+          )}
+          {(digestStatus === 'idle' || (digestStatus === 'completed' && newDraft)) && (
             <>
               <FlaskConical className="w-5 h-5" />
               Submit Digest

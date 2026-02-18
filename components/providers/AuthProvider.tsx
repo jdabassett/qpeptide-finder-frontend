@@ -1,8 +1,9 @@
 'use client';
 
 import { Auth0Provider, useUser } from '@auth0/nextjs-auth0/client';
-import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { useError } from '@/components/providers/ErrorProvider';
+import { parseErrorDetail } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -34,11 +35,10 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
   const [backendUser, setBackendUser] = useState<BackendUser | null>(null);
   const [backendLoading, setBackendLoading] = useState(false);
   const [backendSynced, setBackendSynced] = useState(false);
-  const loggingOutRef = useRef(false);
 
   // When Auth0 gives us a user, sync with the backend
   useEffect(() => {
-    if (auth0Loading || !auth0User || backendSynced || loggingOutRef.current) return;
+    if (auth0Loading || !auth0User || backendSynced) return;
 
     const syncUser = async () => {
       setBackendLoading(true);
@@ -54,14 +54,7 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
 
         if (!response.ok) {
           const body = await response.json().catch(() => null);
-          let message = `Failed to sync user (${response.status})`;
-          if (body?.detail) {
-            if (typeof body.detail === 'string') {
-              message = body.detail;
-            } else if (Array.isArray(body.detail)) {
-              message = body.detail.map((e: any) => e.msg).join('; ');
-            }
-          }
+          const message = parseErrorDetail(body, `Failed to sync user (${response.status})`);
           setError(response.status, message);
           setBackendUser(null);
         } else {
@@ -94,10 +87,6 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
   const deleteAccountAndLogout = useCallback(async (): Promise<boolean> => {
     if (!backendUser) return false;
 
-    // Prevent the sync effect from re-creating the user
-    // between state clear and Auth0 logout redirect
-    loggingOutRef.current = true;
-
     try {
       const response = await fetch(`${API_URL}/v1/users/id/${backendUser.id}`, {
         method: 'DELETE',
@@ -105,16 +94,8 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
 
       if (!response.ok) {
         const body = await response.json().catch(() => null);
-        let message = `Failed to delete account (${response.status})`;
-        if (body?.detail) {
-          if (typeof body.detail === 'string') {
-            message = body.detail;
-          } else if (Array.isArray(body.detail)) {
-            message = body.detail.map((e: any) => e.msg).join('; ');
-          }
-        }
+        const message = parseErrorDetail(body, `Failed to delete account (${response.status})`);
         setError(response.status, message);
-        loggingOutRef.current = false;
         return false;
       }
 
@@ -125,7 +106,6 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
       return true;
     } catch {
       setError(0, 'Unable to reach the server. Please check your connection.');
-      loggingOutRef.current = false;
       return false;
     }
   }, [backendUser, setError]);
