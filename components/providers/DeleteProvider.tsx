@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { useError } from '@/components/providers/ErrorProvider';
 import { useUserContext } from '@/components/providers/AuthProvider';
+import { parseErrorDetail } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -71,14 +72,7 @@ export default function DeleteProvider({ children }: { children: ReactNode }) {
 
         if (!response.ok) {
           const body = await response.json().catch(() => null);
-          let message = `Failed to delete digest ${digestId} (${response.status})`;
-          if (body?.detail) {
-            if (typeof body.detail === 'string') {
-              message = body.detail;
-            } else if (Array.isArray(body.detail)) {
-              message = body.detail.map((e: any) => e.msg).join('; ');
-            }
-          }
+          const message = parseErrorDetail(body, `Failed to delete digest ${digestId} (${response.status})`);
           failed.push(message);
         }
       }

@@ -13,6 +13,7 @@ import ScienceContent from '../modals/content/Science';
 import ErrorModal from '../modals/ErrorModal';
 import NewDigestContent from '../modals/content/NewDigest';
 import DeleteModal from '../modals/DeleteModal';
+import AnalysisContent from '../modals/content/Analysis';
 
 
 
@@ -25,12 +26,14 @@ const modalContentMap: Record<string, React.ComponentType<any>> = {
   'logout': LogoutContent,
   'science': ScienceContent,
   'new-digest': NewDigestContent,
+  'analysis': AnalysisContent,
 };
 const modalTitleMap: Record<string, string> = {
   'login': 'Login',
   'logout': 'Logout',
   'science': 'Science behind QPeptides',
   'new-digest': 'New Digest',
+  'analysis': 'Analysis',
 };
 
 export default function MainLayout({ children }: MainLayoutProps) {
@@ -87,6 +90,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
         >
           {activeModal === 'logout' ? (
             <ModalContent onClose={closeModal} />
+          ) : activeModal === 'new-digest' ? (
+            <NewDigestContent onOpenAnalysis={() => setActiveModal('analysis')} />
           ) : (
             <ModalContent />
           )}

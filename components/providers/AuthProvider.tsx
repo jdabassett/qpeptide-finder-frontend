@@ -3,6 +3,7 @@
 import { Auth0Provider, useUser } from '@auth0/nextjs-auth0/client';
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { useError } from '@/components/providers/ErrorProvider';
+import { parseErrorDetail } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -53,14 +54,7 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
 
         if (!response.ok) {
           const body = await response.json().catch(() => null);
-          let message = `Failed to sync user (${response.status})`;
-          if (body?.detail) {
-            if (typeof body.detail === 'string') {
-              message = body.detail;
-            } else if (Array.isArray(body.detail)) {
-              message = body.detail.map((e: any) => e.msg).join('; ');
-            }
-          }
+          const message = parseErrorDetail(body, `Failed to sync user (${response.status})`);
           setError(response.status, message);
           setBackendUser(null);
         } else {
@@ -100,14 +94,7 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
 
       if (!response.ok) {
         const body = await response.json().catch(() => null);
-        let message = `Failed to delete account (${response.status})`;
-        if (body?.detail) {
-          if (typeof body.detail === 'string') {
-            message = body.detail;
-          } else if (Array.isArray(body.detail)) {
-            message = body.detail.map((e: any) => e.msg).join('; ');
-          }
-        }
+        const message = parseErrorDetail(body, `Failed to delete account (${response.status})`);
         setError(response.status, message);
         return false;
       }

@@ -1,21 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { FlaskConical, Type, AlignLeft, AlertCircle, Loader2, Check, BarChart3 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { FlaskConical, Type, AlignLeft, AlertCircle, Loader2, BarChart3 } from 'lucide-react';
 import { useError } from '@/components/providers/ErrorProvider';
-import { useUserContext } from '@/components/providers/AuthProvider';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+import { useDigest } from '@/components/providers/DigestProvider';
 
 /* ── Constants ── */
 const STORAGE_KEY = 'qpeptide-new-digest-draft';
 const MAX_NAME_LENGTH = 255;
 const MAX_SEQUENCE_LENGTH = 3000;
 const VALID_AMINO_ACIDS = new Set('ACDEFGHIKLMNPQRSTVWY');
-const FAST_POLL_MS = 1_000;       // 1 second
-const SLOW_POLL_MS = 5_000;       // 5 seconds
-const FAST_PHASE_MS = 10_000;     // first 10 seconds: use fast polling
-const POLL_TIMEOUT_MS = 5 * 60_000; // 5 minutes total
 
 /* ── Validation ── */
 
@@ -57,116 +51,43 @@ function validateSequence(sequence: string): ValidationResult {
 
 /* ── localStorage helpers ── */
 
-function loadDraft(): { proteinName: string; sequence: string } {
-  if (typeof window === 'undefined') return { proteinName: '', sequence: '' };
+function loadDraft(): { proteinName: string; sequence: string; newDraft: boolean} {
+  if (typeof window === 'undefined') return { proteinName: '', sequence: '', newDraft: true };
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return { proteinName: '', sequence: '' };
+    if (!stored) return { proteinName: '', sequence: '', newDraft: true };
     const parsed = JSON.parse(stored);
     return {
       proteinName: typeof parsed.proteinName === 'string' ? parsed.proteinName : '',
       sequence: typeof parsed.sequence === 'string' ? parsed.sequence : '',
+      newDraft: parsed.newDraft !== false,
     };
   } catch {
-    return { proteinName: '', sequence: '' };
+    return { proteinName: '', sequence: '', newDraft: true };
   }
 }
 
-function saveDraft(proteinName: string, sequence: string) {
+function saveDraft(proteinName: string, sequence: string, newDraft: boolean) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ proteinName, sequence }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ proteinName, sequence, newDraft }));
   } catch { /* localStorage full or unavailable */ }
 }
 
 /* ── Component ── */
+interface NewDigestContentProps {
+  onOpenAnalysis?: () => void;
+}
 
-export default function NewDigestContent() {
+export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentProps) {
   const { setError } = useError();
-  const { user } = useUserContext();
+  const { status: digestStatus, submitDigest } = useDigest();
 
   const [proteinName, setProteinName] = useState('');
   const [sequence, setSequence] = useState('');
   const [nameError, setNameError] = useState<string | null>(null);
   const [sequenceError, setSequenceError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'polling' | 'completed'>('idle');
-  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const digestIdRef = useRef<string | null>(null);
-
-  // ── Stop polling helper ──
-  const stopPolling = useCallback(() => {
-    if (pollIntervalRef.current) {
-      clearTimeout(pollIntervalRef.current);
-      pollIntervalRef.current = null;
-    }
-    if (pollTimeoutRef.current) {
-      clearTimeout(pollTimeoutRef.current);
-      pollTimeoutRef.current = null;
-    }
-  }, []);
-
-  // Clean up polling on unmount
-  useEffect(() => {
-    return () => stopPolling();
-  }, [stopPolling]);
-
-  const startPolling = useCallback((digestId: string) => {
-    stopPolling();
-    digestIdRef.current = digestId;
-    setSubmitStatus('polling');
-  
-    const startTime = Date.now();
-  
-    // 5-minute hard timeout
-    pollTimeoutRef.current = setTimeout(() => {
-      stopPolling();
-      setSubmitStatus('idle');
-      setError(0, 'Digest timed out after 5 minutes. Find record in Digests window.');
-    }, POLL_TIMEOUT_MS);
-  
-    const poll = async () => {
-      if (!user?.id || !digestIdRef.current) return;
-  
-      try {
-        const response = await fetch(
-          `${API_URL}/v1/digest/${user.id}/${digestIdRef.current}`
-        );
-  
-        if (!response.ok) {
-          // Transient error — schedule next tick and skip
-          scheduleNext();
-          return;
-        }
-  
-        const data = await response.json();
-  
-        if (data.status === 'completed') {
-          stopPolling();
-          setSubmitStatus('completed');
-          return;
-        } else if (data.status === 'failed') {
-          stopPolling();
-          setSubmitStatus('idle');
-          setError(500, 'Digest processing failed on the server. Please try again.');
-          return;
-        }
-      } catch {
-        // Network error — schedule next tick
-      }
-  
-      scheduleNext();
-    };
-  
-    const scheduleNext = () => {
-      const elapsed = Date.now() - startTime;
-      const delay = elapsed < FAST_PHASE_MS ? FAST_POLL_MS : SLOW_POLL_MS;
-      pollIntervalRef.current = setTimeout(poll, delay);
-    };
-  
-    // Fire the first poll immediately after a short delay
-    pollIntervalRef.current = setTimeout(poll, FAST_POLL_MS);
-  }, [user, setError, stopPolling]);
+  const [newDraft, setNewDraft] = useState(true);
   
 
   // Hydrate from localStorage on mount
@@ -174,39 +95,41 @@ export default function NewDigestContent() {
     const draft = loadDraft();
     setProteinName(draft.proteinName);
     setSequence(draft.sequence);
+    setNewDraft(draft.newDraft);
     setHydrated(true);
   }, []);
   
   // Save to localStorage on change — only AFTER hydration
   useEffect(() => {
     if (!hydrated) return;
-    saveDraft(proteinName, sequence);
+    saveDraft(proteinName, sequence, newDraft);
   }, [proteinName, sequence, hydrated]);
 
   // Clear inline errors as user types
   const handleNameChange = useCallback((value: string) => {
     setProteinName(value);
     if (nameError) setNameError(null);
-    if (submitStatus !== 'idle') setSubmitStatus('idle');
-  }, [nameError, submitStatus]);
+    setNewDraft(true);
+  }, [nameError]);
 
   const handleSequenceChange = useCallback((value: string) => {
     setSequence(value);
     if (sequenceError) setSequenceError(null);
-    if (submitStatus !== 'idle') setSubmitStatus('idle');
-  }, [sequenceError, submitStatus]);
+    setNewDraft(true);
+  }, [sequenceError]);
 
   const handleClear = useCallback(() => {
     setProteinName('');
     setSequence('');
     setNameError(null);
     setSequenceError(null);
-    setSubmitStatus('idle');
+    setNewDraft(true);
     try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (submitStatus === 'loading') return;
+    if (digestStatus === 'loading' || digestStatus === 'polling' || digestStatus === 'fetching') return;
+
     const nameResult = validateName(proteinName);
     const seqResult = validateSequence(sequence);
 
@@ -218,53 +141,18 @@ export default function NewDigestContent() {
       setError(400, messages);
       return;
     }
-
-
-    if (!user?.id) {
-      setError(401, 'You must be logged in to submit a digest.');
-      return;
-    }
-
-    setSubmitStatus('loading');
-
-    try {
-      const response = await fetch(`${API_URL}/v1/digest/job`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
-          protease: 'trypsin',
-          protein_name: proteinName.trim(),
-          sequence: sequence.replace(/[\s\d]/g, '').toUpperCase(),
-        }),
-      });
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => null);
-        let message = `Failed to submit digest (${response.status})`;
-        if (body?.detail) {
-          if (typeof body.detail === 'string') {
-            message = body.detail;
-          } else if (Array.isArray(body.detail)) {
-            message = body.detail.map((e: any) => e.msg).join('; ');
-          }
-        }
-        setError(response.status, message);
-        setSubmitStatus('idle');
-        return;
-      }
-      const data = await response.json();
-      // Start polling with the returned digest_id
-      startPolling(data.digest_id);
-    } catch {
-      setError(0, 'Unable to reach the server. Please check your connection.');
-      setSubmitStatus('idle');
-    }
-  }, [proteinName, sequence, user, setError, submitStatus]);
+    setNewDraft(false);
+    await submitDigest({
+      proteinName: proteinName.trim(),
+      sequence: sequence.replace(/[\s\d]/g, '').toUpperCase(),
+    });
+  }, [proteinName, sequence, digestStatus, setError, submitDigest]);
 
   const cleanedLength = sequence.replace(/\s/g, '').length;
 
-  const isInputDisabled = submitStatus === 'loading' || submitStatus === 'polling';
+  const isInputDisabled = digestStatus === 'loading' || digestStatus === 'polling' || digestStatus === 'fetching';
+
+  const showAnalyze = !newDraft && digestStatus === 'completed';
 
   return (
     <div className="space-y-6 p-2">
@@ -366,47 +254,47 @@ export default function NewDigestContent() {
         </button>
         }
         <button
-          onClick={submitStatus === 'completed' ? () => { /* TODO: open analysis */ } : handleSubmit}
+          onClick={showAnalyze ? () => onOpenAnalysis?.() : handleSubmit}
           disabled={isInputDisabled}
           className="flex-1 px-6 py-3 font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
           style={{
             backgroundColor:
-              submitStatus === 'completed' ? 'var(--rainbow-green)'
-              : submitStatus === 'polling' ? 'var(--dark-orange)'
+              showAnalyze ? 'var(--rainbow-green)'
+              : digestStatus === 'polling' ? 'var(--dark-orange)'
               : 'var(--dark-blue)',
             color: 'var(--white)',
             border: '1px ridge var(--dark-gray)',
             borderBottom: '4px ridge var(--dark-gray)',
-            opacity: (submitStatus === 'loading' || submitStatus === 'polling') ? 0.7 : 1,
+            opacity: (digestStatus === 'loading' || digestStatus === 'polling') ? 0.7 : 1,
           }}
           onMouseEnter={e => {
-            if (submitStatus === 'idle') e.currentTarget.style.backgroundColor = 'var(--blue)';
-            if (submitStatus === 'completed') e.currentTarget.style.backgroundColor = 'var(--green)';
+            if (digestStatus === 'idle') e.currentTarget.style.backgroundColor = 'var(--blue)';
+            if (showAnalyze) e.currentTarget.style.backgroundColor = 'var(--green)';
           }}
           onMouseLeave={e => {
-            if (submitStatus === 'idle') e.currentTarget.style.backgroundColor = 'var(--dark-blue)';
-            if (submitStatus === 'completed') e.currentTarget.style.backgroundColor = 'var(--rainbow-green)';
+            if (digestStatus === 'idle') e.currentTarget.style.backgroundColor = 'var(--dark-blue)';
+            if (showAnalyze) e.currentTarget.style.backgroundColor = 'var(--rainbow-green)';
           }}
         >
-          {submitStatus === 'loading' && (
+          {(digestStatus === 'loading') && (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
               Submitting…
             </>
           )}
-          {submitStatus === 'polling' && (
+          {(digestStatus === 'polling' || digestStatus === 'fetching') && (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
               Digesting…
             </>
           )}
-          {submitStatus === 'completed' && (
+          {showAnalyze && (
             <>
               <BarChart3 className="w-5 h-5" />
               Analyze Digest
             </>
           )}
-          {submitStatus === 'idle' && (
+          {(digestStatus === 'idle' || (digestStatus === 'completed' && newDraft)) && (
             <>
               <FlaskConical className="w-5 h-5" />
               Submit Digest
