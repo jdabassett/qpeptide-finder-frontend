@@ -45,6 +45,8 @@
   /* Text / controls */
   --black: #1F1F1F;
 
+  --dark-green: #6EBA42;
+
   /* Decorative */
   --rainbow-red: #F45B69;
   --rainbow-yellow: #F4D35E;
@@ -61,6 +63,10 @@
 @layer base {
   html {
     font-size: clamp(14px, 1vw + 0.5rem, 16px);
+  }
+  
+  button[style*="background"] {
+    background-color: inherit;
   }
 
   body {

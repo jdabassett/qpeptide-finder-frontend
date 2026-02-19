@@ -95,7 +95,7 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
     const draft = loadDraft();
     setProteinName(draft.proteinName);
     setSequence(draft.sequence);
-    setNewDraft(draft.newDraft);
+    setNewDraft(true);
     setHydrated(true);
   }, []);
   
@@ -150,7 +150,8 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
 
   const cleanedLength = sequence.replace(/\s/g, '').length;
 
-  const isInputDisabled = digestStatus === 'loading' || digestStatus === 'polling' || digestStatus === 'fetching';
+  const isInputDisabled =
+  digestStatus === 'loading' || digestStatus === 'polling' || digestStatus === 'fetching';
 
   const showAnalyze = !newDraft && digestStatus === 'completed';
 
@@ -258,25 +259,26 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
           disabled={isInputDisabled}
           className="flex-1 px-6 py-3 font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
           style={{
-            backgroundColor:
-              showAnalyze ? 'var(--rainbow-green)'
-              : digestStatus === 'polling' ? 'var(--dark-orange)'
-              : 'var(--dark-blue)',
+            backgroundColor: 'var(--blue)',
             color: 'var(--white)',
             border: '1px ridge var(--dark-gray)',
             borderBottom: '4px ridge var(--dark-gray)',
             opacity: (digestStatus === 'loading' || digestStatus === 'polling') ? 0.7 : 1,
           }}
           onMouseEnter={e => {
-            if (digestStatus === 'idle') e.currentTarget.style.backgroundColor = 'var(--blue)';
-            if (showAnalyze) e.currentTarget.style.backgroundColor = 'var(--green)';
+              e.currentTarget.style.backgroundColor = 'var(--dark-blue)'
           }}
           onMouseLeave={e => {
-            if (digestStatus === 'idle') e.currentTarget.style.backgroundColor = 'var(--dark-blue)';
-            if (showAnalyze) e.currentTarget.style.backgroundColor = 'var(--rainbow-green)';
+              e.currentTarget.style.backgroundColor = 'var(--blue)'
           }}
         >
-          {(digestStatus === 'loading') && (
+          {newDraft && (
+            <>
+              <FlaskConical className="w-5 h-5" />
+              Submit Digest
+            </>
+          )}
+          {digestStatus === 'loading' && (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
               Submitting…
@@ -292,12 +294,6 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
             <>
               <BarChart3 className="w-5 h-5" />
               Analyze Digest
-            </>
-          )}
-          {(digestStatus === 'idle' || (digestStatus === 'completed' && newDraft)) && (
-            <>
-              <FlaskConical className="w-5 h-5" />
-              Submit Digest
             </>
           )}
         </button>

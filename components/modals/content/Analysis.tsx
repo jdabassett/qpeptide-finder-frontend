@@ -1,8 +1,10 @@
 'use client';
 
-import { BarChart3, FileSearch } from 'lucide-react';
+import { BarChart3, FileSearch, Trash2, Download } from 'lucide-react';
 import { useDigest } from '@/components/providers/DigestProvider';
+import { useDelete } from '@/components/providers/DeleteProvider';
 import type { PeptideResponse, CriteriaResponse } from '@/components/providers/DigestProvider';
+import { downloadDigestCsv } from "@/lib/downloadCSV";
 
 function formatNumber(value: number | null): string {
   if (value === null) return '—';
@@ -14,6 +16,7 @@ export default function AnalysisContent() {
   const hasData = peptidesResponse && peptidesResponse.peptides.length > 0;
   const criteria = peptidesResponse?.criteria ?? [];
   const peptides = peptidesResponse?.peptides ?? [];
+  const { requestDelete } = useDelete();
 
   if (!hasData) {
     return (
@@ -34,7 +37,10 @@ export default function AnalysisContent() {
         >
           <FileSearch className="w-12 h-12" style={{ color: 'var(--dark-gray)' }} />
           <p className="text-sm text-center max-w-md" style={{ color: 'var(--dark-gray)' }}>
-            No digest results to analyze. Select a digest from the <strong>Digests</strong> modal to view peptide analysis here, or run a new digest from <strong>New Digest</strong> and then click <strong>Analyze Digest</strong>.
+            No results to analyze. 
+          </p>
+          <p className="text-sm text-center max-w-md" style={{ color: 'var(--dark-gray)' }}> 
+          Select a digest from <strong>Digests</strong>, or run a new digest in <strong>New Digest</strong>.
           </p>
         </div>
       </div>
@@ -52,9 +58,53 @@ export default function AnalysisContent() {
           Analysis
         </h2>
       </div>
-      <p className="text-sm" style={{ color: 'var(--dark-gray)' }}>
-        Digest Name: {proteinName}
-      </p>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <p className="text-sm" style={{ color: 'var(--dark-gray)' }}>
+          Digest Name: {proteinName}
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => requestDelete([digestId], 'digest')}
+            className="px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-90"
+            style={{
+              backgroundColor: 'var(--rainbow-red)',
+              color: 'var(--white)',
+              border: '1px ridge var(--dark-gray)',
+              borderBottom: '3px ridge var(--dark-gray)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--red)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--rainbow-red)';
+            }}
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete Digest
+          </button>
+          <button
+            type="button"
+            onClick={() => downloadDigestCsv(peptidesResponse, digestResponse)}
+            className="px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-90"
+            style={{
+              backgroundColor: 'var(--blue)',
+              color: 'var(--white)',
+              border: '1px ridge var(--dark-gray)',
+              borderBottom: '3px ridge var(--dark-gray)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--dark-blue)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--blue)';
+            }}
+          >
+            <Download className="w-4 h-4" />
+            Download
+          </button>
+        </div>
+      </div>
 
       <div
         className="overflow-x-auto border-2"
@@ -97,9 +147,9 @@ export default function AnalysisContent() {
                 <td className="px-3 py-1.5 border border-gray-400 font-mono" style={{ color: 'var(--black)' }}>{formatNumber(p.charge_state)}</td>
                 <td className="px-3 py-1.5 border border-gray-400 font-mono" style={{ color: 'var(--black)' }}>{formatNumber(p.max_kd_score)}</td>
                 <td className="px-3 py-1.5 border border-gray-400 font-mono" style={{ color: 'var(--black)' }}>{p.rank}</td>
-                {criteria.map((c: CriteriaResponse, i: number) => (
+                {criteria.map((c: CriteriaResponse) => (
                   <td key={c.code} className="px-3 py-1.5 border border-gray-400 font-mono text-center" style={{ color: 'var(--black)' }}>
-                    {p.criteria_ranks[i] != null ? 'true' : 'false' }
+                    {`${p.criteria_ranks.includes(c.rank)? 'true': 'false'}`}
                   </td>
                 ))}
               </tr>
