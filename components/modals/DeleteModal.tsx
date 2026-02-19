@@ -26,7 +26,7 @@ export default function DeleteModal() {
   const message = isUser
     ? 'Are you sure you want to permanently delete your profile and all associated records? This action cannot be undone.'
     : digestCount === 1
-      ? 'Are you sure you want to permanently delete the selected digest? This action cannot be undone.'
+      ? 'Are you sure you want to permanently delete this digest? This action cannot be undone.'
       : `Are you sure you want to permanently delete ${digestCount} selected digests? This action cannot be undone.`;
 
   return (
@@ -117,12 +117,6 @@ export default function DeleteModal() {
             {/* Message */}
             <div className="flex-1 min-w-0">
               <p
-                className="text-sm font-bold"
-                style={{ color: 'var(--dark-orange)' }}
-              >
-                {isUser ? 'This will delete everything' : `Deleting ${digestCount} digest${digestCount !== 1 ? 's' : ''}`}
-              </p>
-              <p
                 className="text-sm mt-2 break-words"
                 style={{ color: 'var(--black)' }}
               >
@@ -162,7 +156,7 @@ export default function DeleteModal() {
               disabled={isDeleting}
               className="px-5 py-2 text-sm font-medium transition-all flex items-center gap-2 cursor-pointer"
               style={{
-                backgroundColor: isDeleting ? 'var(--dark-gray)' : 'var(--red)',
+                backgroundColor: 'var(--rainbow-red)',
                 color: 'var(--white)',
                 border: '1px ridge var(--dark-gray)',
                 borderBottom: '3px ridge var(--dark-gray)',

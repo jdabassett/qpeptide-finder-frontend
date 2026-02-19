@@ -30,13 +30,13 @@ export default function RootLayout({
       >
         <ErrorProvider>
           <AuthProvider>
-            <DeleteProvider>
-              <DigestProvider>
+            <DigestProvider>
+              <DeleteProvider>
                 <DeviceProvider>
-                    {children}
+                  {children}
                 </DeviceProvider>
-              </DigestProvider>
-            </DeleteProvider>
+              </DeleteProvider>
+            </DigestProvider>
           </AuthProvider>
         </ErrorProvider>
       </body>

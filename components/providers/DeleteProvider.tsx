@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useCallback, ReactNode } from 'rea
 import { useError } from '@/components/providers/ErrorProvider';
 import { useUserContext } from '@/components/providers/AuthProvider';
 import { parseErrorDetail } from '@/lib/api';
+import { useDigest } from '@/components/providers/DigestProvider';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -30,6 +31,7 @@ export default function DeleteProvider({ children }: { children: ReactNode }) {
   const { user, deleteAccountAndLogout } = useUserContext();
   const [deleteRequest, setDeleteRequest] = useState<DeleteRequest | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { digestId: currentDigestId, reset } = useDigest();
 
   const isVisible = deleteRequest !== null;
 
@@ -74,7 +76,9 @@ export default function DeleteProvider({ children }: { children: ReactNode }) {
           const body = await response.json().catch(() => null);
           const message = parseErrorDetail(body, `Failed to delete digest ${digestId} (${response.status})`);
           failed.push(message);
-        }
+        } else if (currentDigestId != null && deleteRequest.ids.includes(currentDigestId)) {
+          reset();
+        };
       }
 
       if (failed.length > 0) {
@@ -91,7 +95,7 @@ export default function DeleteProvider({ children }: { children: ReactNode }) {
       setIsDeleting(false);
       return false;
     }
-  }, [deleteRequest, user, setError, deleteAccountAndLogout]);
+  }, [deleteRequest, user, setError, deleteAccountAndLogout, currentDigestId, reset]);
 
   return (
     <DeleteContext.Provider value={{ deleteRequest, isVisible, isDeleting, requestDelete, cancelDelete, confirmDelete }}>
