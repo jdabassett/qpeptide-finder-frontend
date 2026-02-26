@@ -4,6 +4,7 @@ import type {
   PeptideResponse,
   CriteriaResponse,
 } from '@/components/providers/DigestProvider';
+import { formatDigestDate } from '@/lib/dateUtils';
 
 /** Escape a CSV field: wrap in quotes and double internal quotes if needed. */
 function escapeCsvField(value: string): string {
@@ -54,21 +55,6 @@ function buildCsv(data: DigestPeptidesResponse): string {
   return [headerLine, ...rows].join('\n');
 }
 
-/** Turn created_at (ISO string) into a filename-safe segment. */
-function formatCreatedAtForFilename(createdAt: string): string {
-  try {
-    const date = new Date(createdAt);
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    const h = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    return `${y}-${m}-${d}-${h}-${min}`; 
-  } catch {
-    return createdAt.replace(/[:.]/g, '-').slice(0, 19);
-  }
-}
-
 /** Sanitize a string for use in a filename (remove or replace unsafe chars). */
 function sanitizeFilenameSegment(s: string, maxLength = 40): string {
   const trimmed = s.replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').trim();
@@ -92,7 +78,7 @@ export function downloadDigestCsv(
     : 'digest';
 
   const dateSegment = digestResponse?.created_at
-    ? formatCreatedAtForFilename(digestResponse.created_at)
+    ? formatDigestDate(digestResponse.created_at, "filename")
     : peptidesResponse.digest_id.slice(0, 8);
   const filename = `${proteinName}-${dateSegment}.csv`;
 

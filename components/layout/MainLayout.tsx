@@ -14,6 +14,7 @@ import ErrorModal from '../modals/ErrorModal';
 import NewDigestContent from '../modals/content/NewDigest';
 import DeleteModal from '../modals/DeleteModal';
 import AnalysisContent from '../modals/content/Analysis';
+import DigestsContent from '../modals/content/Digests';
 
 
 
@@ -27,6 +28,7 @@ const modalContentMap: Record<string, React.ComponentType<any>> = {
   'science': ScienceContent,
   'new-digest': NewDigestContent,
   'analysis': AnalysisContent,
+  'digests': DigestsContent,
 };
 const modalTitleMap: Record<string, string> = {
   'login': 'Login',
@@ -34,6 +36,7 @@ const modalTitleMap: Record<string, string> = {
   'science': 'Science behind QPeptides',
   'new-digest': 'New Digest',
   'analysis': 'Analysis',
+  'digests': 'Digests',
 };
 
 export default function MainLayout({ children }: MainLayoutProps) {
@@ -92,6 +95,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <ModalContent onClose={closeModal} />
           ) : activeModal === 'new-digest' ? (
             <NewDigestContent onOpenAnalysis={() => setActiveModal('analysis')} />
+          ) : activeModal === 'digests' ? (
+            <DigestsContent onOpenAnalysis={() => setActiveModal('analysis')} />
           ) : (
             <ModalContent />
           )}

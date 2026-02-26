@@ -23,7 +23,7 @@ const SLOW_POLL_MS = 5_000;
 const FAST_PHASE_MS = 10_000;
 const POLL_TIMEOUT_MS = 5 * 60_000;
 const PEPTIDE_FETCH_TIMEOUT_MS = 30_000;
-const DIGEST_STATE_KEY = 'qpeptide-digest-state';
+export const DIGEST_STATE_KEY = 'qpeptide-digest-state';
 
 /* ── Types mirroring backend schemas ── */
 
@@ -115,6 +115,9 @@ interface DigestContextType {
   digestResponse: DigestResponse | null;
   peptidesResponse: DigestPeptidesResponse | null;
   submitDigest: (params: { proteinName: string; sequence: string }) => Promise<void>;
+  loadDigestForAnalysis: (userId: string, digestId: string) => Promise<void>;
+  digestListVersion: number;
+  invalidateDigestList: () => void;
   reset: () => void;
 }
 
@@ -131,6 +134,9 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const digestIdRef = useRef<string | null>(null);
+  const [digestListVersion, setDigestListVersion] = useState(0);
+
+  const invalidateDigestList = useCallback(() => { setDigestListVersion((v) => v + 1); }, []);
 
   // Ref so polling closures always read the latest user ID without
   // forcing startPolling to re-create when the user object changes.
@@ -169,6 +175,7 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return () => stopPolling();
   }, [stopPolling]);
+
 
   /* ── Fetch peptides after digest completes ── */
 
@@ -272,6 +279,44 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
     [setError, stopPolling, fetchPeptides],
   );
 
+  /* ── Load existing digest for analysis (e.g. from Digests list) ── */
+  const loadDigestForAnalysis = useCallback(
+    async (userId: string, digestId: string) => {
+      stopPolling();
+      digestIdRef.current = digestId;
+
+      try {
+        const response = await fetch(`${API_URL}/v1/digest/${userId}/${digestId}`);
+        if (!response.ok) {
+          const body = await response.json().catch(() => null);
+          setError(response.status, parseErrorDetail(body, `Failed to load digest (${response.status})`));
+          dispatch({ type: 'FAILED' });
+          return;
+        }
+
+        const data: DigestResponse = await response.json();
+
+        if (data.status === 'failed') {
+          setError(500, 'This digest failed on the server. Choose another or run a new digest.');
+          dispatch({ type: 'FAILED' });
+          return;
+        }
+
+        if (data.status === 'completed') {
+          await fetchPeptides(userId, digestId, data);
+          return;
+        }
+
+        // Still processing — poll until complete, then fetchPeptides runs from polling
+        startPolling(digestId);
+      } catch {
+        setError(0, 'Unable to reach the server. Please check your connection.');
+        dispatch({ type: 'FAILED' });
+      }
+    },
+    [setError, stopPolling, fetchPeptides, startPolling],
+  );
+
   /* ── Rehydrate from localStorage ── */
 
   useEffect(() => {
@@ -324,6 +369,7 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
 
         const data = await response.json();
         startPolling(data.digest_id);
+        invalidateDigestList();
       } catch {
         setError(0, 'Unable to reach the server. Please check your connection.');
         dispatch({ type: 'FAILED' });
@@ -340,9 +386,9 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'RESET' });
     try { localStorage.removeItem(DIGEST_STATE_KEY); } catch {}
   }, [stopPolling]);
+  
 
   /* ── Memoized context value ── */
-
   const value = useMemo<DigestContextType>(
     () => ({
       status: state.status,
@@ -350,9 +396,12 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
       digestResponse: state.digestResponse,
       peptidesResponse: state.peptidesResponse,
       submitDigest,
+      loadDigestForAnalysis,
+      digestListVersion,
+      invalidateDigestList,
       reset,
     }),
-    [state.status, state.digestId, state.digestResponse, state.peptidesResponse, submitDigest, reset],
+    [state.status, state.digestId, state.digestResponse, state.peptidesResponse, submitDigest, loadDigestForAnalysis, digestListVersion, invalidateDigestList, reset],
   );
 
   return (
