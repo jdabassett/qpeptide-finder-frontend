@@ -62,7 +62,7 @@ export default function AnalysisContent() {
         <p className="text-sm" style={{ color: 'var(--dark-gray)' }}>
           Digest Name: {proteinName}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <button
             type="button"
             onClick={() => requestDelete([digestId], 'digest')}

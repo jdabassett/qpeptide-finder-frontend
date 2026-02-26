@@ -238,7 +238,8 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
       </div>
 
       {/* Buttons */}
-      <div className="border-t pt-4 flex gap-3" style={{ borderColor: 'var(--dark-gray)' }}>
+      <div className="border-t pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3" style={{ borderColor: 'var(--dark-gray)' }}>
+
         { !isInputDisabled && <button
           onClick={handleClear}
           className="px-6 py-3 font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"

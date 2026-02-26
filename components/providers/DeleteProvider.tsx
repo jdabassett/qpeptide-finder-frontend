@@ -31,7 +31,7 @@ export default function DeleteProvider({ children }: { children: ReactNode }) {
   const { user, deleteAccountAndLogout } = useUserContext();
   const [deleteRequest, setDeleteRequest] = useState<DeleteRequest | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const { digestId: currentDigestId, reset } = useDigest();
+  const { digestId: currentDigestId, invalidateDigestList, reset } = useDigest();
 
   const isVisible = deleteRequest !== null;
 
@@ -89,6 +89,7 @@ export default function DeleteProvider({ children }: { children: ReactNode }) {
 
       setDeleteRequest(null);
       setIsDeleting(false);
+      invalidateDigestList();
       return true;
     } catch {
       setError(0, 'Unable to reach the server. Please check your connection.');

@@ -3,6 +3,7 @@
 import { useUserContext } from '@/components/providers/AuthProvider';
 import { useState } from 'react';
 import { LogOut, User, Mail, X } from 'lucide-react';
+import { DIGEST_STATE_KEY } from '@/components/providers/DigestProvider';
 
 interface LogoutContentProps {
   onClose?: () => void;
@@ -14,6 +15,11 @@ export default function LogoutContent({ onClose }: LogoutContentProps) {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
+    try {
+      localStorage.removeItem(DIGEST_STATE_KEY);
+    } catch {
+      // ignore
+    }
     window.location.href = `/auth/logout?returnTo=${encodeURIComponent(window.location.origin)}`;
   };
 
