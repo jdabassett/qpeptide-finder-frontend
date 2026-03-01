@@ -338,7 +338,7 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
   /* ── Submit a new digest ── */
 
   const submitDigest = useCallback(
-    async (params: { proteinName: string; sequence: string }) => {
+    async (params: { proteinName: string; sequence: string; criteria_ids?: string[] }) => {
       if (state.status === 'loading' || state.status === 'polling' || state.status === 'fetching') return;
 
       if (!user?.id) {
