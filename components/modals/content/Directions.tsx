@@ -96,7 +96,7 @@ export default function DirectionsContent() {
           <section key={index}>
             <div className="flex items-start gap-3">
               <div
-                className="flex items-center justify-center w-8 h-8 flex-shrink-0 rounded border"
+                className="flex items-center justify-center w-8 h-8 flex-shrink-0 border"
                 style={{
                   backgroundColor: 'var(--cream)',
                   borderColor: 'var(--dark-gray)',
@@ -121,7 +121,7 @@ export default function DirectionsContent() {
                 />
                 {step.example != null && (
                   <div
-                    className="mt-2 px-3 py-2 font-mono text-xs overflow-x-auto rounded border"
+                    className="mt-2 px-3 py-2 font-mono text-xs overflow-x-auto border"
                     style={{
                       backgroundColor: 'var(--white)',
                       borderColor: 'var(--dark-gray)',
@@ -138,7 +138,7 @@ export default function DirectionsContent() {
                         <button
                           type="button"
                           onClick={handleCopyName}
-                          className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium border rounded shrink-0 cursor-pointer"
+                          className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium border shrink-0 cursor-pointer"
                           style={{
                             backgroundColor: copiedWhich === 'name' ? 'var(--rainbow-green)' : 'var(--cream)',
                             color: 'var(--black)',
@@ -153,7 +153,7 @@ export default function DirectionsContent() {
                         <button
                           type="button"
                           onClick={handleCopySequence}
-                          className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium border rounded shrink-0 cursor-pointer"
+                          className="flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium border shrink-0 cursor-pointer"
                           style={{
                             backgroundColor: copiedWhich === 'sequence' ? 'var(--rainbow-green)' : 'var(--cream)',
                             color: 'var(--black)',
