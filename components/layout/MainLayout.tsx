@@ -15,6 +15,7 @@ import NewDigestContent from '../modals/content/NewDigest';
 import DeleteModal from '../modals/DeleteModal';
 import AnalysisContent from '../modals/content/Analysis';
 import DigestsContent from '../modals/content/Digests';
+import DirectionsContent from '../modals/content/Directions';
 
 
 
@@ -29,6 +30,7 @@ const modalContentMap: Record<string, React.ComponentType<any>> = {
   'new-digest': NewDigestContent,
   'analysis': AnalysisContent,
   'digests': DigestsContent,
+  'directions': DirectionsContent,
 };
 const modalTitleMap: Record<string, string> = {
   'login': 'Login',
@@ -37,6 +39,7 @@ const modalTitleMap: Record<string, string> = {
   'new-digest': 'New Digest',
   'analysis': 'Analysis',
   'digests': 'Digests',
+  'directions': 'Directions',
 };
 
 export default function MainLayout({ children }: MainLayoutProps) {
@@ -97,6 +100,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <NewDigestContent onOpenAnalysis={() => setActiveModal('analysis')} />
           ) : activeModal === 'digests' ? (
             <DigestsContent onOpenAnalysis={() => setActiveModal('analysis')} />
+          ) : activeModal === 'directions' ? (
+            <DirectionsContent />
           ) : (
             <ModalContent />
           )}

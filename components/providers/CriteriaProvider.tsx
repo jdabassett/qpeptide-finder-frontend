@@ -1,5 +1,3 @@
-// frontend/components/providers/CriteriaProvider.tsx (new file)
-
 'use client';
 
 import {
@@ -17,7 +15,7 @@ import { parseErrorDetail } from '@/lib/api';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export interface GlobalCriteria {
-  id: string;         
+  id: string;
   code: string;
   goal: string;
   rationale: string;
@@ -59,7 +57,6 @@ export default function CriteriaProvider({ children }: { children: ReactNode }) 
       }
 
       const data: GlobalCriteria[] = await response.json();
-      // Optionally sort by rank just to be safe
       data.sort((a, b) => a.rank - b.rank);
       setCriteria(data);
       setHasLoaded(true);

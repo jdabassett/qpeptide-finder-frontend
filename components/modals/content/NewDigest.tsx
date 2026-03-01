@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { FlaskConical, Type, AlignLeft, AlertCircle, Loader2, BarChart3 } from 'lucide-react';
 import { useError } from '@/components/providers/ErrorProvider';
 import { useDigest } from '@/components/providers/DigestProvider';
+import { useCriteria } from '@/components/providers/CriteriaProvider';
 
 /* ── Constants ── */
 const STORAGE_KEY = 'qpeptide-new-digest-draft';
@@ -12,6 +13,8 @@ const MAX_SEQUENCE_LENGTH = 3000;
 const VALID_AMINO_ACIDS = new Set('ACDEFGHIKLMNPQRSTVWY');
 
 /* ── Validation ── */
+
+type SelectionMode = 'default' | 'custom';
 
 interface ValidationResult {
   valid: boolean;
@@ -49,28 +52,78 @@ function validateSequence(sequence: string): ValidationResult {
   return { valid: true };
 }
 
+const formatGoalLabel = (goal: string) => {
+  const [label] = goal.split(':');
+  return label.trim();
+};
+
 /* ── localStorage helpers ── */
 
-function loadDraft(): { proteinName: string; sequence: string; newDraft: boolean} {
-  if (typeof window === 'undefined') return { proteinName: '', sequence: '', newDraft: true };
+function loadDraft(): {
+  proteinName: string;
+  sequence: string;
+  newDraft: boolean;
+  selectedCriteriaIds: string[];
+  selectionMode: SelectionMode;
+} {
+  if (typeof window === 'undefined') {
+    return { proteinName: '', sequence: '', newDraft: true, selectedCriteriaIds: [], selectionMode: 'default' };
+  }
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return { proteinName: '', sequence: '', newDraft: true };
+    if (!stored) {
+      return { proteinName: '', sequence: '', newDraft: true, selectedCriteriaIds: [], selectionMode: 'default' };
+    }
     const parsed = JSON.parse(stored);
+
+    const rawIds = Array.isArray(parsed.selectedCriteriaIds)
+    ? parsed.selectedCriteriaIds
+    : [];
+  
+    const filteredIds = rawIds.filter(
+      (x: unknown): x is string => typeof x === 'string',
+    );
+    
+    const selectedCriteriaIds = Array.from(
+      new Set<string>(filteredIds),
+    );
+
+    const selectionMode: SelectionMode =
+      parsed.selectionMode === 'custom' ? 'custom' : 'default';
+
     return {
       proteinName: typeof parsed.proteinName === 'string' ? parsed.proteinName : '',
       sequence: typeof parsed.sequence === 'string' ? parsed.sequence : '',
       newDraft: parsed.newDraft !== false,
+      selectedCriteriaIds,
+      selectionMode,
     };
   } catch {
-    return { proteinName: '', sequence: '', newDraft: true };
+    return { proteinName: '', sequence: '', newDraft: true, selectedCriteriaIds: [], selectionMode: 'default' };
   }
 }
 
-function saveDraft(proteinName: string, sequence: string, newDraft: boolean) {
+function saveDraft(
+  proteinName: string,
+  sequence: string,
+  newDraft: boolean,
+  selectedCriteriaIds: string[],
+  selectionMode: SelectionMode,
+) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ proteinName, sequence, newDraft }));
-  } catch { /* localStorage full or unavailable */ }
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        proteinName,
+        sequence,
+        newDraft,
+        selectedCriteriaIds,
+        selectionMode,
+      }),
+    );
+  } catch (err) {
+    console.error("New Digest: unable to save to local storage.", { error: err });
+  }
 }
 
 /* ── Component ── */
@@ -81,6 +134,7 @@ interface NewDigestContentProps {
 export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentProps) {
   const { setError } = useError();
   const { status: digestStatus, submitDigest } = useDigest();
+  const { criteria } = useCriteria();
 
   const [proteinName, setProteinName] = useState('');
   const [sequence, setSequence] = useState('');
@@ -88,6 +142,8 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
   const [sequenceError, setSequenceError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [newDraft, setNewDraft] = useState(true);
+  const [selectedCriteriaIds, setSelectedCriteriaIds] = useState<string[]>([]);
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>('default');
   
 
   // Hydrate from localStorage on mount
@@ -95,6 +151,8 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
     const draft = loadDraft();
     setProteinName(draft.proteinName);
     setSequence(draft.sequence);
+    setSelectedCriteriaIds(draft.selectedCriteriaIds ?? []);
+    setSelectionMode(draft.selectionMode ?? 'default');
     setNewDraft(true);
     setHydrated(true);
   }, []);
@@ -102,8 +160,8 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
   // Save to localStorage on change — only AFTER hydration
   useEffect(() => {
     if (!hydrated) return;
-    saveDraft(proteinName, sequence, newDraft);
-  }, [proteinName, sequence, hydrated]);
+    saveDraft(proteinName, sequence, newDraft, selectedCriteriaIds, selectionMode);
+  }, [proteinName, sequence, newDraft, selectedCriteriaIds, selectionMode, hydrated]);
 
   // Clear inline errors as user types
   const handleNameChange = useCallback((value: string) => {
@@ -124,7 +182,11 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
     setNameError(null);
     setSequenceError(null);
     setNewDraft(true);
-    try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch(err) {
+      console.error("New Digest: couldn't clear local storage", {error: err})
+    }
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -141,12 +203,120 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
       setError(400, messages);
       return;
     }
+
+    const allCriteria = criteria ?? [];
+    const mandatoryCriteria = allCriteria.filter((c) => !c.is_optional);
+    const optionalCriteria = allCriteria.filter((c) => c.is_optional);
+    const appliedIds = [
+      ...mandatoryCriteria.map((c) => c.id),
+      ...(selectionMode === 'default'
+        ? optionalCriteria.map((c) => c.id)
+        : selectedCriteriaIds),
+    ];
+
     setNewDraft(false);
     await submitDigest({
       proteinName: proteinName.trim(),
       sequence: sequence.replace(/[\s\d]/g, '').toUpperCase(),
+      criteria_ids: appliedIds,
     });
-  }, [proteinName, sequence, digestStatus, setError, submitDigest]);
+  }, [proteinName, sequence, digestStatus, setError, submitDigest, criteria, selectionMode, selectedCriteriaIds]);
+
+  // Validate selectedCriteriaIds against current backend criteria
+  useEffect(() => {
+    if (!hydrated || !criteria) return;
+    if (selectedCriteriaIds.length === 0) return;
+  
+    const validIds = new Set(criteria.map((c) => c.id));
+    const filtered = Array.from(
+      new Set(
+        selectedCriteriaIds.filter((id) => validIds.has(id)),
+      ),
+    );
+  
+    if (filtered.length === selectedCriteriaIds.length) return;
+  
+    setSelectedCriteriaIds(filtered);
+  }, [hydrated, criteria, selectedCriteriaIds]);
+
+  // ── Criteria derived lists ──
+  const allCriteria = criteria ?? [];
+  const mandatoryCriteria = allCriteria.filter((c) => !c.is_optional);
+  const optionalCriteria = allCriteria.filter((c) => c.is_optional);
+
+  const isDefaultSelection = selectionMode === 'default';
+  const selectedSet = new Set(selectedCriteriaIds);
+  
+  const appliedCriteria = isDefaultSelection
+    ? optionalCriteria
+    : optionalCriteria.filter((c) => selectedSet.has(c.id));
+  
+  const unappliedCriteria = isDefaultSelection
+    ? []
+    : optionalCriteria.filter((c) => !selectedSet.has(c.id));
+
+  // Apply/unapply helpers for optional criteria
+  const applyCriteria = useCallback((id: string) => {
+    setSelectionMode('custom');
+    setSelectedCriteriaIds((prev) =>
+      prev.includes(id) ? prev : [...prev, id],
+    );
+  }, []);
+
+  const unapplyCriteria = useCallback((id: string) => {
+    setSelectionMode('custom');
+    setSelectedCriteriaIds((prev) => {
+      if (selectionMode === 'default') {
+        return optionalCriteria
+          .map((c) => c.id)
+          .filter((x) => x !== id);
+      }
+      return prev.filter((x) => x !== id);
+    });
+  }, [optionalCriteria, selectionMode]);
+
+  // Drag & drop handlers
+  const handleDragStart = useCallback(
+    (event: React.DragEvent<HTMLButtonElement>, id: string) => {
+      event.dataTransfer.setData('text/plain', id);
+      event.dataTransfer.effectAllowed = 'move';
+    },
+    [],
+  );
+
+  const handleDropToApplied = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      const id = event.dataTransfer.getData('text/plain');
+      if (!id) return;
+      // Only optional criteria are user‑controllable
+      if (!optionalCriteria.some((c) => c.id === id)) return;
+      applyCriteria(id);
+    },
+    [optionalCriteria, applyCriteria],
+  );
+
+  const handleDropToAvailable = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      const id = event.dataTransfer.getData('text/plain');
+      if (!id) return;
+      if (!optionalCriteria.some((c) => c.id === id)) return;
+      unapplyCriteria(id);
+    },
+    [optionalCriteria, unapplyCriteria],
+  );
+
+  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  // "Reset" = clear custom optional selection (only mandatory remain applied)
+  const handleResetSelection = useCallback(() => {
+    setSelectionMode('default');
+    setSelectedCriteriaIds([]);
+  }, []);
 
   const cleanedLength = sequence.replace(/\s/g, '').length;
 
@@ -165,8 +335,7 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
         </h2>
       </div>
       <p className="text-sm" style={{ color: 'var(--dark-gray)' }}>
-        Enter a protein name and amino acid sequence to begin a new digest analysis.
-        Your draft is saved automatically.
+        Enter a protein name, amino acid sequence, and sorting criteria.
       </p>
 
       {/* Protein Name */}
@@ -231,11 +400,184 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
         <p className="text-xs" style={{ color: 'var(--gray)' }}>
           Standard 20 amino acids only (A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y). Whitespace and line numbers are ignored.
         </p>
-        <p className="text-xs" style={{ color: 'var(--gray)' }}>
-        Future versions of QPeptide Finder will support additional proteases beyond Trypsin 
-        and allow curation of the criteria used to grade QPeptide candidates.
-        </p>
       </div>
+
+      {/* Criteria selection */}
+      <div className="space-y-2">
+        <label
+          className="flex items-center gap-2 text-sm font-bold"
+          style={{ color: 'var(--black)' }}
+        >
+          <BarChart3 className="w-4 h-4" />
+          Sorting Criteria
+        </label>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex items-center gap-2">
+            <div className="flex gap-1">
+              <button
+                type="button"
+                disabled
+                className="px-2 py-1 text-[11px] font-medium border"
+                style={{
+                  backgroundColor: 'var(--orange)',   
+                  color: 'var(--black)',
+                  borderColor: 'var(--orange)',
+                  cursor: 'default',
+                  opacity: 1,
+                }}
+                title="Mandatory criteria are always applied"
+              >
+                Mandatory
+              </button>
+              <button
+                type="button"
+                disabled
+                className="px-2 py-1 text-[11px] font-medium border"
+                style={{
+                  backgroundColor: 'var(--yellow)',        
+                  color: 'var(--black)',
+                  borderColor: 'var(--yellow)',
+                  cursor: 'default',
+                  opacity: 1,
+                }}
+                title="Optional criteria can be toggled on or off"
+              >
+                Optional
+              </button>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={isInputDisabled}
+              onClick={handleResetSelection}
+              className="px-2 py-1 text-xs font-medium border rounded cursor-pointer"
+              style={{
+                backgroundColor: 'var(--white)',
+                color: 'var(--black)',
+                borderColor: 'var(--dark-gray)',
+                opacity: isInputDisabled ? 0.6 : 1,
+              }}
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Available / Unapplied optional criteria */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span
+                className="text-xs font-bold uppercase tracking-wide"
+                style={{ color: 'var(--black)' }}
+              >
+              UNAPPLIED
+              </span>
+            </div>
+            <div
+              className="h-40 border p-2 rounded overflow-y-auto"
+              style={{ borderColor: 'var(--dark-gray)', backgroundColor: 'var(--white)' }}
+              onDragOver={handleDragOver}
+              onDrop={handleDropToAvailable}
+            >
+              {unappliedCriteria.length === 0 && (
+                <p className="text-[11px]" style={{ color: 'var(--gray)' }}>
+                  All criteria are applied.
+                </p>
+              )}
+              <div className="flex flex-wrap gap-1">
+                {unappliedCriteria.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    disabled={isInputDisabled}
+                    draggable={!isInputDisabled}
+                    onDragStart={(e) => handleDragStart(e, c.id)}
+                    onClick={() => applyCriteria(c.id)} 
+                    className="text-[11px] px-2 py-1 border cursor-pointer hover:bg-gray-50 transition-colors"
+                    style={{
+                      borderColor: 'var(--yellow)',
+                      backgroundColor: 'var(--yellow)',
+                      color: 'var(--black)',
+                      opacity: isInputDisabled ? 0.6 : 1,
+                    }}
+                  >
+                    {formatGoalLabel(c.goal)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Applied criteria (mandatory + applied optional) */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span
+                className="text-xs font-bold uppercase tracking-wide"
+                style={{ color: 'var(--black)' }}
+              >
+                Applied
+              </span>
+            </div>
+            <div
+              className="h-40 border p-2 rounded overflow-y-auto"
+              style={{ borderColor: 'var(--dark-gray)', backgroundColor: 'var(--white)' }}
+              onDragOver={handleDragOver}
+              onDrop={handleDropToApplied}
+            >
+              {/* Mandatory criteria (always applied, not draggable) */}
+              <div className="flex flex-wrap gap-1 mb-1">
+                {mandatoryCriteria.map((c) => (
+                  <span
+                    key={c.id}
+                    className="text-[11px] px-2 py-1 border"
+                    style={{
+                      borderColor: 'var(--orange)',
+                      backgroundColor: 'var(--orange)',
+                      color: 'var(--black)',
+                    }}
+                    title="Mandatory criterion (always applied)"
+                  >
+                    {formatGoalLabel(c.goal)}
+                  </span>
+                ))}
+              </div>
+
+              {appliedCriteria.length === 0 && mandatoryCriteria.length === 0 && (
+                <p className="text-[11px]" style={{ color: 'var(--gray)' }}>
+                  No criteria applied yet.
+                </p>
+              )}
+
+              <div className="flex flex-wrap gap-1">
+                {appliedCriteria.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    disabled={isInputDisabled}
+                    draggable={!isInputDisabled}
+                    onDragStart={(e) => handleDragStart(e, c.id)}
+                    onClick={() => unapplyCriteria(c.id)} // click to remove
+                    className="text-[11px] px-2 py-1 border cursor-pointer hover:bg-gray-50 transition-colors"
+                    style={{
+                      borderColor: 'var(--yellow)',
+                      backgroundColor: 'var(--yellow)',
+                      color: 'var(--black)',
+                      opacity: isInputDisabled ? 0.6 : 1,
+                    }}
+                  >
+                    {formatGoalLabel(c.goal)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p className="text-xs" style={{ color: 'var(--gray)' }}>
+        Future versions of QPeptide Finder will support additional proteases beyond Trypsin.
+      </p>
 
       {/* Buttons */}
       <div className="border-t pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3" style={{ borderColor: 'var(--dark-gray)' }}>

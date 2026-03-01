@@ -126,7 +126,7 @@ export default function AnalysisContent() {
               <th className="text-left px-3 py-2 border border-black font-bold whitespace-nowrap">MAX KD</th>
               <th className="text-left px-3 py-2 border border-black font-bold whitespace-nowrap">RANK</th>
               {criteria.map((c: CriteriaResponse) => (
-                <th key={c.code} className="text-left px-3 py-2 border border-black font-bold whitespace-nowrap" title={c.goal}>
+                <th key={`header-${c.code}`} className="text-left px-3 py-2 border border-black font-bold whitespace-nowrap" title={c.goal}>
                   {c.code.replaceAll("_", " ").toUpperCase()}
                 </th>
               ))}
@@ -148,7 +148,7 @@ export default function AnalysisContent() {
                 <td className="px-3 py-1.5 border border-gray-400 font-mono" style={{ color: 'var(--black)' }}>{formatNumber(p.max_kd_score)}</td>
                 <td className="px-3 py-1.5 border border-gray-400 font-mono" style={{ color: 'var(--black)' }}>{p.rank}</td>
                 {criteria.map((c: CriteriaResponse) => (
-                  <td key={c.code} className="px-3 py-1.5 border border-gray-400 font-mono text-center" style={{ color: 'var(--black)' }}>
+                  <td key={`cell-${p.id}-${c.code}`} className="px-3 py-1.5 border border-gray-400 font-mono text-center" style={{ color: 'var(--black)' }}>
                     {`${p.criteria_ranks.includes(c.rank)? 'true': 'false'}`}
                   </td>
                 ))}
