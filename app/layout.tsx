@@ -6,6 +6,7 @@ import ErrorProvider from '@/components/providers/ErrorProvider';
 import "./globals.css";
 import DeleteProvider from '@/components/providers/DeleteProvider';
 import DigestProvider from '@/components/providers/DigestProvider';
+import CriteriaProvider from '@/components/providers/CriteriaProvider';
 
 const courier = Courier_Prime({
   weight: "700",
@@ -30,13 +31,15 @@ export default function RootLayout({
       >
         <ErrorProvider>
           <AuthProvider>
-            <DigestProvider>
-              <DeleteProvider>
-                <DeviceProvider>
-                  {children}
-                </DeviceProvider>
-              </DeleteProvider>
-            </DigestProvider>
+            <CriteriaProvider>
+              <DigestProvider>
+                <DeleteProvider>
+                  <DeviceProvider>
+                    {children}
+                  </DeviceProvider>
+                </DeleteProvider>
+              </DigestProvider>
+            </CriteriaProvider>
           </AuthProvider>
         </ErrorProvider>
       </body>

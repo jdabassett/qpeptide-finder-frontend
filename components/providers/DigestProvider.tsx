@@ -114,7 +114,7 @@ interface DigestContextType {
   digestId: string | null;
   digestResponse: DigestResponse | null;
   peptidesResponse: DigestPeptidesResponse | null;
-  submitDigest: (params: { proteinName: string; sequence: string }) => Promise<void>;
+  submitDigest: (params: { proteinName: string; sequence: string, criteria_ids?: string[] }) => Promise<void>;
   loadDigestForAnalysis: (userId: string, digestId: string) => Promise<void>;
   digestListVersion: number;
   invalidateDigestList: () => void;
@@ -357,6 +357,7 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
             protease: 'trypsin',
             protein_name: params.proteinName.trim(),
             sequence: params.sequence,
+            criteria_ids: params.criteria_ids ?? [],
           }),
         });
 

@@ -1,110 +1,42 @@
 'use client';
 
-import { Microscope, FlaskConical, Target, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Microscope, FlaskConical, Target, AlertTriangle, CheckCircle, Info, type LucideIcon } from 'lucide-react';
 import Image from 'next/image';
+import { useCriteria } from '@/components/providers/CriteriaProvider';
 
-const criteria = [
-  {
-    name: 'Uniqueness',
-    code: 'not_unique',
-    summary: 'The peptide must be unique within the target protein.',
-    detail: 'Ensures the measured signal reflects only one site from the protein of interest.',
-    icon: Target,
-  },
-  {
-    name: 'Flanking Cut Sites',
-    code: 'has_flanking_cut_sites',
-    summary: 'Avoid peptides immediately adjacent to cleavage motifs (K, R, KP, RP).',
-    detail: 'Proximity to other cut sites can reduce digestion efficiency, leading to missed cleavages or semi-tryptic peptides.',
-    icon: AlertTriangle,
-  },
-  {
-    name: 'Missed Cleavages',
-    code: 'contains_missed_cleavages',
-    summary: 'Ensure complete digestion.',
-    detail: 'Missed cleavage sites (e.g., Lys-Pro, Arg-Pro) produce heterogeneous peptide populations, reducing reproducibility.',
-    icon: AlertTriangle,
-  },
-  {
-    name: 'N-Terminal Glutamine',
-    code: 'contains_n_terminal_glutamine_motif',
-    summary: 'Exclude peptides starting with glutamine (Q).',
-    detail: 'N-terminal glutamine cyclizes to pyroglutamate post-digestion, producing multiple forms that complicate quantification.',
-    icon: AlertTriangle,
-  },
-  {
-    name: 'Asparagine–Glycine Motif',
-    code: 'contains_asparagine_glycine_motif',
-    summary: 'Exclude N–G motif.',
-    detail: 'N–G motifs deamidate rapidly post-digestion, producing mixed modified/unmodified peptides.',
-    icon: AlertTriangle,
-  },
-  {
-    name: 'Aspartic–Proline Motif',
-    code: 'contains_aspartic_proline_motif',
-    summary: 'Exclude D–P motif.',
-    detail: 'Aspartic acid followed by proline motif causes preferential gas-phase cleavage, producing non-informative fragmentation spectra.',
-    icon: AlertTriangle,
-  },
-  {
-    name: 'Methionine',
-    code: 'contains_methionine',
-    summary: 'Avoid methionine-containing peptides.',
-    detail: 'Methionine oxidizes readily during sample handling, generating multiple peptide species with different masses and retention times.',
-    icon: AlertTriangle,
-  },
-  {
-    name: 'Peptide Length',
-    code: 'outlier_length',
-    summary: 'Optimal range: 7–30 amino acids.',
-    detail: 'Shorter peptides are often non-unique and fragment poorly. Longer peptides ionize inefficiently. This range provides optimal MS detectability.',
-    icon: Info,
-  },
-  {
-    name: 'Hydrophobicity',
-    code: 'outlier_hydrophobicity',
-    summary: 'Kyte-Doolittle score must be between 0.5 and 2.0 (9-residue window).',
-    detail: 'Very hydrophobic peptides adhere to columns and ionize inefficiently. Highly hydrophilic peptides elute too quickly, reducing detectability.',
-    icon: Info,
-  },
-  {
-    name: 'Charge State',
-    code: 'outlier_charge_state',
-    summary: 'Favor 2+ or 3+ ions.',
-    detail: 'Other charge states often fragment less predictably, decreasing identification reliability.',
-    icon: Info,
-  },
-  {
-    name: 'Isoelectric Point (pI)',
-    code: 'outlier_pi',
-    summary: 'Select peptides with pI between 4.0 and 9.0.',
-    detail: 'Peptides in this range reliably produce clean LC peaks, stable charge states, and informative MS/MS spectra under acidic RP-LC-ESI conditions.',
-    icon: Info,
-  },
-  {
-    name: 'Homopolymeric Stretches',
-    code: 'contains_long_homopolymeric_stretch',
-    summary: 'Avoid sequences with 3+ consecutive identical residues.',
-    detail: 'Homopolymeric sequences produce weak, uninformative fragmentation spectra, reducing identification confidence.',
-    icon: AlertTriangle,
-  },
-  {
-    name: 'Flanking Amino Acids',
-    code: 'lacking_flanking_amino_acids',
-    summary: 'Require at least 6 residues on both sides of the cleavage site.',
-    detail: 'Improves trypsin accessibility and digestion efficiency, producing more consistent peptide generation.',
-    icon: CheckCircle,
-  },
-  {
-    name: 'Cysteine',
-    code: 'contains_cysteine',
-    summary: 'Avoid cysteine-containing peptides.',
-    detail: 'Cysteine requires alkylation; incomplete or over-alkylation creates heterogeneous populations, reducing quantitative reliability.',
-    icon: AlertTriangle,
-  },
-];
+const CRITERIA_UI: Record<string, { icon: LucideIcon }> =  {
+    not_unique: {icon: Target},
+    has_flanking_cut_sites: {icon: AlertTriangle},
+    contains_missed_cleavages: {icon: AlertTriangle},
+    contains_n_terminal_glutamine_motif: {icon: AlertTriangle},
+    contains_asparagine_glycine_motif: {icon: AlertTriangle},
+    contains_aspartic_proline_motif: {icon: AlertTriangle},
+    contains_methionine: {icon: AlertTriangle},
+    outlier_length: {icon: Info},
+    outlier_hydrophobicity:{icon: Info},
+    outlier_charge_state: {icon: Info},
+    outlier_pi: {icon: Info},
+    contains_long_homopolymeric_stretch: {icon: AlertTriangle},
+    lacking_flanking_amino_acids: {icon: CheckCircle},
+    contains_cysteine: {icon: AlertTriangle},
+};
 
 export default function ScienceContent() {
+  const { criteria, isLoading } = useCriteria();
+
+  const items = (criteria ?? [])
+    .slice()
+    .sort((a, b) => a.rank - b.rank) 
+    .map((c) => {
+      const ui = CRITERIA_UI[c.code] ?? { icon: Info };
+      return {
+        code: c.code,
+        icon: ui.icon,
+        goal: c.goal,          
+        rationale: c.rationale 
+      };
+    });
+
   return (
     <div className="space-y-8 p-2 overflow-y-auto">
 
@@ -196,11 +128,12 @@ export default function ScienceContent() {
           </h2>
         </div>
         <p className="text-sm mb-4" style={{ color: 'var(--dark-gray)' }}>
-          QPeptide Finder evaluates each candidate peptide against <strong>{criteria.length} criteria</strong>, ranked from most to least important. Peptides that pass more criteria are better candidates.
+          QPeptide Finder evaluates each candidate peptide against{' '}
+          <strong>{items.length} criteria</strong>, ranked from most to least important. Peptides that pass more criteria are better candidates.
         </p>
 
         <div className="space-y-3">
-          {criteria.map((criterion, index) => {
+          {items.map((criterion) => {
             const Icon = criterion.icon;
             return (
               <details
@@ -212,22 +145,19 @@ export default function ScienceContent() {
                   <Icon className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--dark-gray)' }} />
                   <div className="flex-1 min-w-0">
                     <span className="font-semibold text-sm" style={{ color: 'var(--black)' }}>
-                      {criterion.name}
-                    </span>
-                    <span className="text-xs ml-2" style={{ color: 'var(--dark-gray)' }}>
-                      — {criterion.summary}
+                      {criterion.goal}
                     </span>
                   </div>
                 </summary>
-                <div 
+                <div
                   className="px-4 py-3 text-sm border-t"
-                  style={{ 
-                    color: 'var(--dark-gray)', 
+                  style={{
+                    color: 'var(--dark-gray)',
                     borderColor: 'var(--dark-gray)',
-                    backgroundColor: 'var(--cream)' 
+                    backgroundColor: 'var(--cream)',
                   }}
                 >
-                  {criterion.detail}
+                  {criterion.rationale}
                 </div>
               </details>
             );

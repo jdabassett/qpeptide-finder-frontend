@@ -58,6 +58,7 @@ export default function Logo({
         alt="QPeptide Finder Logo"
         width={400}
         height={400}
+        loading="eager"
         className="w-full h-full object-contain"
         priority={priority}
         sizes={sizes}
