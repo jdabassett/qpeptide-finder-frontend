@@ -11,7 +11,7 @@ function formatNumber(value: number | null): string {
   return String(value);
 }
 
-export default function AnalysisContent() {
+export default function ReviewContent() {
   const { peptidesResponse, digestResponse } = useDigest();
   const hasData = peptidesResponse && peptidesResponse.peptides.length > 0;
   const criteria = peptidesResponse?.criteria ?? [];
@@ -24,7 +24,7 @@ export default function AnalysisContent() {
         <div className="flex items-center gap-2">
           <BarChart3 className="w-5 h-5" style={{ color: 'var(--dark-orange)' }} />
           <h2 className="text-lg font-bold" style={{ color: 'var(--black)' }}>
-            Analysis
+            Review
           </h2>
         </div>
         <div
@@ -37,7 +37,7 @@ export default function AnalysisContent() {
         >
           <FileSearch className="w-12 h-12" style={{ color: 'var(--dark-gray)' }} />
           <p className="text-sm text-center max-w-md" style={{ color: 'var(--dark-gray)' }}>
-            No results to analyze. 
+            No results to review. 
           </p>
           <p className="text-sm text-center max-w-md" style={{ color: 'var(--dark-gray)' }}> 
           Select a digest from <strong>Digests</strong>, or run a new digest in <strong>New Digest</strong>.
@@ -55,7 +55,7 @@ export default function AnalysisContent() {
       <div className="flex items-center gap-2">
         <BarChart3 className="w-5 h-5" style={{ color: 'var(--dark-orange)' }} />
         <h2 className="text-lg font-bold" style={{ color: 'var(--black)' }}>
-          Analysis
+          Review
         </h2>
       </div>
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -117,7 +117,7 @@ export default function AnalysisContent() {
       >
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr style={{ backgroundColor: 'var(--dark-blue)', color: 'var(--white)' }}>
+            <tr style={{ backgroundColor: 'var(--dark-green)', color: 'var(--white)' }}>
               <th className="text-left px-3 py-2 border border-black font-bold whitespace-nowrap">#</th>
               <th className="text-left px-3 py-2 border border-black font-bold whitespace-nowrap">POSITION</th>
               <th className="text-left px-3 py-2 border border-black font-bold">SEQUENCE</th>

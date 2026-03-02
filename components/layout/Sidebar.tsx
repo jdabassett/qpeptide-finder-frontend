@@ -19,7 +19,7 @@ export default function Sidebar({onFileClick }: SidebarProps) {
   const authenticatedFiles = [
     { name: 'New Digest', icon: Slice, color: 'var(--dark-orange)' },
     { name: 'Digests', icon: Search, color: 'var(--dark-yellow)' },
-    { name: 'Analysis', icon: ChartColumnIncreasing, color: 'var(--rainbow-green)' },
+    { name: 'Review', icon: ChartColumnIncreasing, color: 'var(--rainbow-green)' },
   ];
 
   const files = isAuthenticated 

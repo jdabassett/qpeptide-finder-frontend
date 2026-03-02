@@ -115,7 +115,7 @@ interface DigestContextType {
   digestResponse: DigestResponse | null;
   peptidesResponse: DigestPeptidesResponse | null;
   submitDigest: (params: { proteinName: string; sequence: string, criteria_ids?: string[] }) => Promise<void>;
-  loadDigestForAnalysis: (userId: string, digestId: string) => Promise<void>;
+  loadDigestForReview: (userId: string, digestId: string) => Promise<void>;
   digestListVersion: number;
   invalidateDigestList: () => void;
   reset: () => void;
@@ -279,8 +279,8 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
     [setError, stopPolling, fetchPeptides],
   );
 
-  /* ── Load existing digest for analysis (e.g. from Digests list) ── */
-  const loadDigestForAnalysis = useCallback(
+  /* ── Load existing digest for review (e.g. from Digests list) ── */
+  const loadDigestForReview = useCallback(
     async (userId: string, digestId: string) => {
       stopPolling();
       digestIdRef.current = digestId;
@@ -397,12 +397,12 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
       digestResponse: state.digestResponse,
       peptidesResponse: state.peptidesResponse,
       submitDigest,
-      loadDigestForAnalysis,
+      loadDigestForReview,
       digestListVersion,
       invalidateDigestList,
       reset,
     }),
-    [state.status, state.digestId, state.digestResponse, state.peptidesResponse, submitDigest, loadDigestForAnalysis, digestListVersion, invalidateDigestList, reset],
+    [state.status, state.digestId, state.digestResponse, state.peptidesResponse, submitDigest, loadDigestForReview, digestListVersion, invalidateDigestList, reset],
   );
 
   return (

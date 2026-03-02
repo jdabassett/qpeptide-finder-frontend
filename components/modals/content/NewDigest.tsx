@@ -128,10 +128,10 @@ function saveDraft(
 
 /* ── Component ── */
 interface NewDigestContentProps {
-  onOpenAnalysis?: () => void;
+  onOpenReview?: () => void;
 }
 
-export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentProps) {
+export default function NewDigestContent({ onOpenReview }: NewDigestContentProps) {
   const { setError } = useError();
   const { status: digestStatus, submitDigest } = useDigest();
   const { criteria } = useCriteria();
@@ -323,7 +323,7 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
   const isInputDisabled =
   digestStatus === 'loading' || digestStatus === 'polling' || digestStatus === 'fetching';
 
-  const showAnalyze = !newDraft && digestStatus === 'completed';
+  const showReview = !newDraft && digestStatus === 'completed';
 
   return (
     <div className="space-y-6 p-2">
@@ -598,7 +598,7 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
         </button>
         }
         <button
-          onClick={showAnalyze ? () => onOpenAnalysis?.() : handleSubmit}
+          onClick={showReview ? () => onOpenReview?.() : handleSubmit}
           disabled={isInputDisabled}
           className="flex-1 px-6 py-3 font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
           style={{
@@ -633,10 +633,10 @@ export default function NewDigestContent({ onOpenAnalysis }: NewDigestContentPro
               Digesting…
             </>
           )}
-          {showAnalyze && (
+          {showReview && (
             <>
               <BarChart3 className="w-5 h-5" />
-              Analyze Digest
+              Review Digest
             </>
           )}
         </button>

@@ -13,7 +13,7 @@ import ScienceContent from '../modals/content/Science';
 import ErrorModal from '../modals/ErrorModal';
 import NewDigestContent from '../modals/content/NewDigest';
 import DeleteModal from '../modals/DeleteModal';
-import AnalysisContent from '../modals/content/Analysis';
+import ReviewContent from '@/components/modals/content/Review';
 import DigestsContent from '../modals/content/Digests';
 import DirectionsContent from '../modals/content/Directions';
 
@@ -28,7 +28,7 @@ const modalContentMap: Record<string, React.ComponentType<any>> = {
   'logout': LogoutContent,
   'science': ScienceContent,
   'new-digest': NewDigestContent,
-  'analysis': AnalysisContent,
+  'review': ReviewContent,
   'digests': DigestsContent,
   'directions': DirectionsContent,
 };
@@ -37,7 +37,7 @@ const modalTitleMap: Record<string, string> = {
   'logout': 'Logout',
   'science': 'Science behind QPeptides',
   'new-digest': 'New Digest',
-  'analysis': 'Analysis',
+  'review': 'Review',
   'digests': 'Digests',
   'directions': 'Directions',
 };
@@ -50,7 +50,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     const modalMap: Record<string, ModalType> = {
       'New Digest': 'new-digest',
       'Digests': 'digests',
-      'Analysis': 'analysis',
+      'Review': 'review',
       'Directions': 'directions',
       'Science': 'science',
     };
@@ -97,11 +97,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
           {activeModal === 'logout' ? (
             <ModalContent onClose={closeModal} />
           ) : activeModal === 'new-digest' ? (
-            <NewDigestContent onOpenAnalysis={() => setActiveModal('analysis')} />
+            <NewDigestContent onOpenReview={() => setActiveModal('review')} />
           ) : activeModal === 'digests' ? (
-            <DigestsContent onOpenAnalysis={() => setActiveModal('analysis')} />
+            <DigestsContent onOpenReview={() => setActiveModal('review')} />
           ) : activeModal === 'directions' ? (
             <DirectionsContent />
+          ) : activeModal === 'review' ? (
+            <ReviewContent />
           ) : (
             <ModalContent />
           )}
