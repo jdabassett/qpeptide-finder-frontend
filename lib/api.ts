@@ -6,7 +6,11 @@ export function parseErrorDetail(body: any, fallback: string): string {
   if (!body?.detail) return fallback;
   if (typeof body.detail === 'string') return body.detail;
   if (Array.isArray(body.detail)) {
-    return body.detail.map((e: any) => e.msg).join('; ');
+    const messages = body.detail.map((e: any) => {
+      const msg = e.msg ?? '';
+      return msg.startsWith('Value error, ') ? msg.slice(12) : msg;
+    });
+    return messages.join('; ');
   }
   return fallback;
 }
