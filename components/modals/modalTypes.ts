@@ -3,7 +3,7 @@ export type ModalType =
   | 'logout'
   | 'new-digest'
   | 'digests'
-  | 'analysis'
+  | 'review'
   | 'directions'
   | 'science'
   | null;

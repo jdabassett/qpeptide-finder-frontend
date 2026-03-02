@@ -30,8 +30,8 @@ export default function RootLayout({
         className={`${courier.variable} font-mono antialiased`}
       >
         <ErrorProvider>
-          <AuthProvider>
-            <CriteriaProvider>
+          <CriteriaProvider>
+            <AuthProvider>
               <DigestProvider>
                 <DeleteProvider>
                   <DeviceProvider>
@@ -39,8 +39,8 @@ export default function RootLayout({
                   </DeviceProvider>
                 </DeleteProvider>
               </DigestProvider>
-            </CriteriaProvider>
-          </AuthProvider>
+            </AuthProvider>
+          </CriteriaProvider>
         </ErrorProvider>
       </body>
     </html>

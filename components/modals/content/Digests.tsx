@@ -13,13 +13,13 @@ import { formatDigestDate } from '@/lib/dateUtils';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 interface DigestsContentProps {
-  onOpenAnalysis?: () => void;
+  onOpenReview?: () => void;
 }
 
-export default function DigestsContent({ onOpenAnalysis }: DigestsContentProps) {
+export default function DigestsContent({ onOpenReview }: DigestsContentProps) {
   const { user } = useUserContext();
   const { requestDelete } = useDelete();
-  const { loadDigestForAnalysis, digestListVersion } = useDigest();
+  const { loadDigestForReview, digestListVersion } = useDigest();
   const { setError } = useError();
 
   const [digests, setDigests] = useState<DigestResponse[]>([]);
@@ -80,16 +80,16 @@ export default function DigestsContent({ onOpenAnalysis }: DigestsContentProps) 
     setSelectedIds(new Set());
   }, [selectedIds, requestDelete]);
 
-  const handleAnalyze = useCallback(async () => {
+  const handleReview = useCallback(async () => {
     if (selectedIds.size !== 1 || !user?.id) return;
     const digestId = [...selectedIds][0];
-    await loadDigestForAnalysis(user.id, digestId);
-    onOpenAnalysis?.();
-  }, [selectedIds, user?.id, loadDigestForAnalysis, onOpenAnalysis]);
+    await loadDigestForReview(user.id, digestId);
+    onOpenReview?.();
+  }, [selectedIds, user?.id, loadDigestForReview, onOpenReview]);
 
   const allSelected = digests.length > 0 && selectedIds.size === digests.length;
   const selectedDigest = selectedIds.size === 1 ? digests.find((d) => d.id === [...selectedIds][0]) ?? null : null;
-  const canAnalyze = selectedDigest?.status === 'completed';
+  const canReview = selectedDigest?.status === 'completed';
 
   return (
     <div className="space-y-4 p-2">
@@ -160,8 +160,8 @@ export default function DigestsContent({ onOpenAnalysis }: DigestsContentProps) 
 
             <button
               type="button"
-              onClick={handleAnalyze}
-              disabled={!canAnalyze}
+              onClick={handleReview}
+              disabled={!canReview}
               className="px-3 py-1.5 text-sm font-medium flex items-center gap-2 cursor-pointer disabled:opacity-50"
               style={{
                 backgroundColor: 'var(--dark-blue)',
@@ -170,7 +170,7 @@ export default function DigestsContent({ onOpenAnalysis }: DigestsContentProps) 
               }}
             >
               <BarChart3 className="w-4 h-4" />
-              Analyze
+              Review
             </button>
           </div>
 

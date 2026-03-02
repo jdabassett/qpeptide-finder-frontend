@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { FileText, FlaskConical, Type, AlignLeft, BarChart3, ChevronRight, Copy, LucideIcon } from 'lucide-react';
+import { FileText, FlaskConical, Type, AlignLeft, BarChart3, ChevronRight, Copy, LucideIcon, LogIn } from 'lucide-react';
 
 const HUMAN_ALBUMIN_NAME = 'Human Albumin';
 const HUMAN_ALBUMIN_EXAMPLE = [
@@ -18,14 +18,19 @@ type StepItem = {
 
 const STEPS: StepItem[]= [
   {
+    title: 'Log in',
+    icon: LogIn,
+    body: 'You must be signed in first.',
+  },
+  {
     title: 'Open New Digest',
     icon: FlaskConical,
-    body: 'Click **New Digest**. This opens the tab where you enter your protein and run a digest.',
+    body: 'Click **New Digest**. This opens the window where you enter your protein and run a digest.',
   },
   {
     title: 'Enter the protein name',
     icon: Type,
-    body: 'In the **Protein Name** field, type a label for your protein.',
+    body: 'Paste following protein name in the **Protein Name** box.',
     example: HUMAN_ALBUMIN_NAME,
   },
   {
@@ -37,17 +42,17 @@ const STEPS: StepItem[]= [
   {
     title: 'Choose sorting criteria',
     icon: BarChart3,
-    body: 'Use **Sorting Criteria** to decide how peptides are ranked. Mandatory criteria are always applied. You can add or remove optional criteria by dragging between **Unapplied** and **Applied**. The default of all criteria applied works well.',
+    body: 'Use **Sorting Criteria** to decide how peptides are ranked. Mandatory criteria are always applied and displayed to inform about all the criteria that goes into ranking each qpeptide. You can add or remove optional criteria by dragging between **Unapplied** and **Applied**.',
   },
   {
     title: 'Submit and wait',
     icon: FlaskConical,
-    body: 'Click **Submit Digest**. The app will digest the protein with trypsin and score peptides. When the status shows completion, the **Analyze Digest** button appears.',
+    body: 'Click **Submit Digest**. The app will digest the protein with trypsin and rank each qpeptides. When the status shows completion, the **Review Digest** button appears.',
   },
   {
     title: 'View results',
     icon: BarChart3,
-    body: 'Click **Analyze Digest** to open the Analysis view. There you can see the ranked peptides, their properties (pI, charge, sequence), and which criteria contributed to each score. You can also open **Digests** from the sidebar to pick a previous digest and analyze it. Click the **Download** button to save your results in a CSV file.',
+    body: 'Click **Review Digest** to open the Review window. There you can see the ranked peptides, their properties (pI, charge, sequence), and which criteria contributed to each score. You can also open **Digests** from the sidebar to pick a previous digest and review it. Click the **Download** button to save your results in a CSV file.',
   },
 ];
 
@@ -134,7 +139,7 @@ export default function DirectionsContent() {
                           {step.exampleLabel}
                         </span>
                       )}
-                      {index === 1 && (
+                      {index === 2 && (
                         <button
                           type="button"
                           onClick={handleCopyName}
@@ -149,7 +154,7 @@ export default function DirectionsContent() {
                           {copiedWhich === 'name' ? 'Copied!' : 'Copy'}
                         </button>
                       )}
-                      {index === 2 && (
+                      {index === 3 && (
                         <button
                           type="button"
                           onClick={handleCopySequence}
