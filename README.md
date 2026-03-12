@@ -12,6 +12,7 @@ Next.js frontend application for the QPeptide Cutter protein digestion tool.
 
 ## Development
 
+
 ### Prerequisites
 
 - Node.js 20+
