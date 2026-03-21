@@ -1,40 +1,26 @@
-# QPeptide Cutter Frontend
+# QPeptide Finder Frontend
 
-Next.js frontend application for the QPeptide Cutter protein digestion tool.
+Next.js frontend for **QPeptide Finder** — protein digestion, peptide ranking, and review workflows.
 
-## Tech Stack 
+## Tech stack
 
-- Next.js 14+ (App Router)
-- React 18+
-- TypeScript
-- Tailwind CSS
+- **Next.js** 16 (App Router)
+- **React** 19
+- **TypeScript** 5
+- **Tailwind CSS** 4
+- **Auth0** (`@auth0/nextjs-auth0`) — login / social providers
+- **ESLint** 9 + `eslint-config-next` (Next.js core-web-vitals rules)
 
 ## Development
 
 ### Prerequisites
 
 - Node.js 20+
-- npm or yarn
+- npm
 
-### Local Development
+### Local setup
 
 1. Install dependencies:
+
    npm install
-   2. Set up environment variables:
-   cp .env.example .env.local
-   # Edit .env.local with your API URL
-   3. Run development server:
-   npm run dev
-   4. Open [http://localhost:3000](http://localhost:3000)
-
-## Docker
-
-### Build
-docker build -t qpeptide-frontend .### Run
-docker run -p 3000:3000 -e NEXT_PUBLIC_API_URL=http://localhost:8000 qpeptide-frontend## Environment Variables
-
-- `NEXT_PUBLIC_API_URL`: Backend API URL (default: http://localhost:8000)
-
-## Deployment
-
-See deployment documentation for EC2 setup instructions.
+   
