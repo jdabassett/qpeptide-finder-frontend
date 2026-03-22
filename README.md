@@ -20,6 +20,7 @@ Next.js frontend for **QPeptide Finder** — protein digestion, peptide ranking,
 
 ### Local setup
 
+
 1. Install dependencies:
 
    npm install
