@@ -9,7 +9,6 @@ Next.js frontend application for the QPeptide Finder protein digestion tool.
 - TypeScript
 - Tailwind CSS
 
-
 ## Development
 
 ### Prerequisites
