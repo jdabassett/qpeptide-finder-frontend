@@ -1,6 +1,6 @@
-# QPeptide Cutter Frontend
+# QPeptide Finder Frontend
 
-Next.js frontend application for the QPeptide Cutter protein digestion tool.
+Next.js frontend application for the QPeptide Finder protein digestion tool.
 
 ## Tech Stack 
 
