@@ -16,6 +16,7 @@ Next.js frontend application for the QPeptide Finder protein digestion tool.
 - Node.js 20+
 - npm or yarn
 
+
 ### Local Development
 
 1. Install dependencies:
