@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { FileText, Lock, Search, Slice, ChartColumnIncreasing, Microscope} from 'lucide-react';
+import { FileText, Search, Slice, ChartColumnIncreasing, Microscope} from 'lucide-react';
 import { useUserContext } from '@/components/providers/AuthProvider';
 
 interface SidebarProps {

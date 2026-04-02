@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FlaskConical, Type, AlignLeft, AlertCircle, Loader2, BarChart3 } from 'lucide-react';
 import { useError } from '@/components/providers/ErrorProvider';
 import { useDigest } from '@/components/providers/DigestProvider';
@@ -144,11 +144,20 @@ export default function NewDigestContent({ onOpenReview }: NewDigestContentProps
   const [newDraft, setNewDraft] = useState(true);
   const [selectedCriteriaIds, setSelectedCriteriaIds] = useState<string[]>([]);
   const [selectionMode, setSelectionMode] = useState<SelectionMode>('default');
-  
 
-  // Hydrate from localStorage on mount
+  const allCriteria = useMemo(() => criteria ?? [], [criteria]);
+  const mandatoryCriteria = useMemo(
+    () => allCriteria.filter((c) => !c.is_optional),
+    [allCriteria],
+  );
+  const optionalCriteria = useMemo(
+    () => allCriteria.filter((c) => c.is_optional),
+    [allCriteria],
+  );
+
   useEffect(() => {
     const draft = loadDraft();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage hydration
     setProteinName(draft.proteinName);
     setSequence(draft.sequence);
     setSelectedCriteriaIds(draft.selectedCriteriaIds ?? []);
@@ -204,9 +213,6 @@ export default function NewDigestContent({ onOpenReview }: NewDigestContentProps
       return;
     }
 
-    const allCriteria = criteria ?? [];
-    const mandatoryCriteria = allCriteria.filter((c) => !c.is_optional);
-    const optionalCriteria = allCriteria.filter((c) => c.is_optional);
     const appliedIds = [
       ...mandatoryCriteria.map((c) => c.id),
       ...(selectionMode === 'default'
@@ -220,7 +226,17 @@ export default function NewDigestContent({ onOpenReview }: NewDigestContentProps
       sequence: sequence.replace(/[\s\d]/g, '').toUpperCase(),
       criteria_ids: appliedIds,
     });
-  }, [proteinName, sequence, digestStatus, setError, submitDigest, criteria, selectionMode, selectedCriteriaIds]);
+    }, [
+      proteinName,
+      sequence,
+      digestStatus,
+      setError,
+      submitDigest,
+      mandatoryCriteria,
+      optionalCriteria,
+      selectionMode,
+      selectedCriteriaIds,
+    ]);
 
   // Validate selectedCriteriaIds against current backend criteria
   useEffect(() => {
@@ -235,15 +251,12 @@ export default function NewDigestContent({ onOpenReview }: NewDigestContentProps
     );
   
     if (filtered.length === selectedCriteriaIds.length) return;
-  
+
+    // eslint-disable-next-line
     setSelectedCriteriaIds(filtered);
   }, [hydrated, criteria, selectedCriteriaIds]);
 
   // ── Criteria derived lists ──
-  const allCriteria = criteria ?? [];
-  const mandatoryCriteria = allCriteria.filter((c) => !c.is_optional);
-  const optionalCriteria = allCriteria.filter((c) => c.is_optional);
-
   const isDefaultSelection = selectionMode === 'default';
   const selectedSet = new Set(selectedCriteriaIds);
   

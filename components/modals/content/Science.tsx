@@ -22,7 +22,7 @@ const CRITERIA_UI: Record<string, { icon: LucideIcon }> =  {
 };
 
 export default function ScienceContent() {
-  const { criteria, isLoading } = useCriteria();
+  const { criteria } = useCriteria();
 
   const items = (criteria ?? [])
     .slice()
@@ -111,7 +111,7 @@ export default function ScienceContent() {
 
           <p>
             The success of this entire workflow depends on choosing the right QPeptide — one that is 
-            efficiently and reproducibly generated during digestion, and that produces a reliable signal in the mass spectrometer. That's what QPeptide Finder helps you do.
+            efficiently and reproducibly generated during digestion, and that produces a reliable signal in the mass spectrometer. That&apos;s what QPeptide Finder helps you do.
           </p>
         </div>
       </section>

@@ -96,7 +96,7 @@ export default function DeleteProvider({ children }: { children: ReactNode }) {
       setIsDeleting(false);
       return false;
     }
-  }, [deleteRequest, user, setError, deleteAccountAndLogout, currentDigestId, reset]);
+  }, [deleteRequest, user, setError, deleteAccountAndLogout, currentDigestId, reset, invalidateDigestList]);
 
   return (
     <DeleteContext.Provider value={{ deleteRequest, isVisible, isDeleting, requestDelete, cancelDelete, confirmDelete }}>

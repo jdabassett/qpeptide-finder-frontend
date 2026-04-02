@@ -61,7 +61,7 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
           const data: BackendUser = await response.json();
           setBackendUser(data);
         }
-      } catch (err) {
+      } catch {
         setError(0, 'Unable to reach the server. Please check your connection.');
         setBackendUser(null);
       } finally {

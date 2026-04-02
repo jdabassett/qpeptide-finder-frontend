@@ -33,6 +33,7 @@ export default function LogoutContent({ onClose }: LogoutContentProps) {
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4"
           style={{ backgroundColor: 'var(--light-blue)' }}>
           {user?.picture ? (
+            /* eslint-disable-next-line @next/next/no-img-element -- Auth0 profile URL; add remotePatterns if switching to next/image */
             <img 
               src={user.picture} 
               alt={user?.name || 'User'} 
@@ -58,7 +59,7 @@ export default function LogoutContent({ onClose }: LogoutContentProps) {
           )}
         </div>
         <p className="text-sm" style={{ color: 'var(--dark-gray)' }}>
-          You'll need to sign in again to access your account.
+          {"You'll need to sign in again..."}
         </p>
       </div>
 
