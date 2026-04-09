@@ -55,6 +55,7 @@ export default function TopBar({ onLoginClick }: TopBarProps) {
         >
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-100 border border-gray-900 flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer overflow-hidden">
             {user?.picture ? (
+              /* eslint-disable-next-line @next/next/no-img-element -- Auth0 profile URL; add remotePatterns if switching to next/image */
               <img 
                 src={user.picture} 
                 alt={displayName}

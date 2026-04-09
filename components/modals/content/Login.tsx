@@ -51,6 +51,7 @@ export default function LoginContent({ onLoginSuccess }: LoginContentProps) {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4"
             style={{ backgroundColor: 'var(--light-blue)' }}>
             {user.picture ? (
+              /* eslint-disable-next-line @next/next/no-img-element -- Auth0 profile URL; add remotePatterns if switching to next/image */
               <img 
                 src={user.picture} 
                 alt={user.name || 'User'} 
@@ -61,7 +62,7 @@ export default function LoginContent({ onLoginSuccess }: LoginContentProps) {
             )}
           </div>
           <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--black)' }}>
-            You're logged in!
+            {'You\'re logged in!'}
           </h2>
           <div className="space-y-2 mb-6">
             <p className="text-lg font-medium" style={{ color: 'var(--black)' }}>

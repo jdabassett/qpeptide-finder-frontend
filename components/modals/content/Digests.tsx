@@ -5,7 +5,6 @@ import { Search, Loader2, AlertCircle, Trash2, BarChart3, RefreshCw } from 'luci
 import { useUserContext } from '@/components/providers/AuthProvider';
 import { useDelete } from '@/components/providers/DeleteProvider';
 import { useDigest } from '@/components/providers/DigestProvider';
-import { useError } from '@/components/providers/ErrorProvider';
 import { parseErrorDetail } from '@/lib/api';
 import type { DigestResponse } from '@/components/providers/DigestProvider';
 import { formatDigestDate } from '@/lib/dateUtils';
@@ -20,7 +19,6 @@ export default function DigestsContent({ onOpenReview }: DigestsContentProps) {
   const { user } = useUserContext();
   const { requestDelete } = useDelete();
   const { loadDigestForReview, digestListVersion } = useDigest();
-  const { setError } = useError();
 
   const [digests, setDigests] = useState<DigestResponse[]>([]);
   const [loading, setLoading] = useState(true);

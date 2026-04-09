@@ -202,8 +202,8 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
 
         const data: DigestPeptidesResponse = await response.json();
         dispatch({ type: 'COMPLETED', peptidesResponse: data });
-      } catch (err: any) {
-        if (err?.name === 'AbortError') {
+      } catch (err: unknown) {
+        if (err instanceof Error && err?.name === 'AbortError') {
           setError(0, 'Peptide fetch timed out. Try opening the digest from the Digests list.');
         } else {
           setError(0, 'Unable to reach the server. Please check your connection.');
@@ -321,6 +321,7 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (hydrated || !user?.id) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- rehydrate after user id known
     setHydrated(true);
 
     try {
@@ -376,7 +377,7 @@ export default function DigestProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'FAILED' });
       }
     },
-    [user, setError, state.status, startPolling],
+    [user, setError, state.status, startPolling, invalidateDigestList],
   );
 
   /* ── Reset ── */

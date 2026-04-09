@@ -23,7 +23,7 @@ interface MainLayoutProps {
   children: React.ReactNode;
 }
 
-const modalContentMap: Record<string, React.ComponentType<any>> = {
+const modalContentMap: Record<string, React.ComponentType<Record<string, unknown>>> = {
   'login': LoginContent,
   'logout': LogoutContent,
   'science': ScienceContent,
