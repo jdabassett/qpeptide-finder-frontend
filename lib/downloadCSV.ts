@@ -69,8 +69,7 @@ export function downloadDigestCsv(
   peptidesResponse: DigestPeptidesResponse,
   digestResponse: DigestResponse | null
 ): void {
-  // TODO: remove console log
-  console.log('peptidesResponse', peptidesResponse);
+
   const csv = buildCsv(peptidesResponse);
 
   const proteinName = digestResponse?.protein_name

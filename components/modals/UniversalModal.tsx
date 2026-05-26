@@ -27,13 +27,6 @@ export default function UniversalModal({
 }: UniversalModalProps) {
   const { isMobile } = useDevice();
   const [modalSize, setModalSize] = useState<ModalSize>('small');
-
-  // TODO: validate this should be removed
-  // useEffect(() => {
-  //   if (isOpen) {
-  //     setModalSize(isMobile ? 'fullscreen' : 'small');
-  //   }
-  // }, [isOpen, isMobile]);
   
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
